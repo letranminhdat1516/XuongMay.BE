@@ -5,6 +5,7 @@
 
 # Migration
 Migrations
+Migrations/*.cs
 # User-specific files
 *.rsuser
 *.suo

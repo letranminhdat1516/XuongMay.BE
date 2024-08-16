@@ -22,7 +22,7 @@ namespace XuongMayBE.API.Controllers
             return Ok(BaseResponse<IList<ProductTask>>.OkResponse(productTasks));
         }
 
-        [HttpGet()]
+        [HttpPost()]
         public async Task<IActionResult> CreateTask()
         {
             return Ok();
