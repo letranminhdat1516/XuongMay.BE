@@ -4,7 +4,13 @@ namespace XuongMay.Contract.Services.Interface
 {
     public interface IProductTaskService
     {
+        // R
         Task<IList<ProductTask>> GetAll();
-        Task CreateTaskFromOrder(int id, int quantity, ProductTask productTask);
+        Task<ProductTask> GetTaskOfProductById(object id);
+
+        // CUD
+        Task CreateTaskFromOrderDetail(ProductTask productTask);
+        Task UpdateCompleteQuantity(int quantity);
+        Task<bool> CompareQuantityTaskOfOrderDetail(object orderDetailId);
     }
 }
