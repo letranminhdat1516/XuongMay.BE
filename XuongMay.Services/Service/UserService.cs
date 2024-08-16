@@ -18,7 +18,15 @@ namespace XuongMay.Services.Service
             {
                 new UserResponseModel { Id = "1" },
                 new UserResponseModel { Id = "2" },
-                new UserResponseModel { Id = "3" }
+                new UserResponseModel { Id = "3" },
+                new UserResponseModel { Id = "4" },
+                new UserResponseModel { Id = "5" },
+                new UserResponseModel { Id = "6" },
+                new UserResponseModel { Id = "7" },
+                new UserResponseModel { Id = "8" },
+                new UserResponseModel { Id = "9" },
+                new UserResponseModel { Id = "10" },
+                new UserResponseModel { Id = "12" }
             };
 
             return Task.FromResult(users);
