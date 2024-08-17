@@ -5,7 +5,7 @@ using XuongMay.Core.Base;
 
 namespace XuongMayBE.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/product-task")]
     [ApiController]
     public class ProductTaskController : ControllerBase
     {
@@ -15,14 +15,14 @@ namespace XuongMayBE.API.Controllers
             _productTaskService = productTaskService;
         }
 
-        [HttpGet()]
+        [HttpGet("/get-all")]
         public async Task<IActionResult> GetAllProductTask()
         {
             IList<ProductTask> productTasks = await _productTaskService.GetAll();
             return Ok(BaseResponse<IList<ProductTask>>.OkResponse(productTasks));
         }
 
-        [HttpGet()]
+        [HttpGet("/ok")]
         public async Task<IActionResult> CreateTask()
         {
             return Ok();
