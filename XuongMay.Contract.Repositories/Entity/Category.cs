@@ -1,12 +1,13 @@
-﻿using XuongMay.Core.Base;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
+using XuongMay.Core.Base;
 
 namespace XuongMay.Contract.Repositories.Entity
 {
+    [Table("Category")]
     public class Category : BaseEntity
     {
-        public String CategoryName { get; set; } = string.Empty;
-        public String CategoryDescription { get; set; } = string.Empty;
-
-        public virtual ICollection<Products> Products { get; set; } = new List<Products>();
+        public string CategoryName { get; set; } = string.Empty;
+        public string CategoryDescription { get; set; } = string.Empty;
     }
 }

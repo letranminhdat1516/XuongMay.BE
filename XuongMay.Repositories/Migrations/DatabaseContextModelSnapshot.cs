@@ -18,9 +18,6 @@ namespace XuongMay.Repositories.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.8")
-                .HasAnnotation("Proxies:ChangeTracking", false)
-                .HasAnnotation("Proxies:CheckEquality", false)
-                .HasAnnotation("Proxies:LazyLoading", true)
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -297,7 +294,7 @@ namespace XuongMay.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Category");
                 });
 
             modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.Conveyor", b =>
@@ -331,6 +328,9 @@ namespace XuongMay.Repositories.Migrations
                     b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time");
 
+                    b.Property<bool>("IsWorking")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -343,6 +343,55 @@ namespace XuongMay.Repositories.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Conveyors");
+                });
+
+            modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.OrderTask", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ConveyorId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("DeletedTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("LastUpdatedTime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("OrderId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TaskNote")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConveyorId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderTasks");
                 });
 
             modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.Orders", b =>
@@ -372,9 +421,6 @@ namespace XuongMay.Repositories.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ProductId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ProductsId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("Quantity")
@@ -389,66 +435,11 @@ namespace XuongMay.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductsId");
+                    b.HasIndex("ProductId");
 
                     b.HasIndex("UserInfoId");
 
                     b.ToTable("Orders");
-                });
-
-            modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.ProductTask", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ConvenyorId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ConveyorId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("CreatedTime")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset?>("DeletedTime")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("LastUpdatedTime")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("OrderId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OrdersId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TaskNote")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConveyorId");
-
-                    b.HasIndex("OrdersId");
-
-                    b.ToTable("ProductTasks");
                 });
 
             modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.Products", b =>
@@ -681,40 +672,40 @@ namespace XuongMay.Repositories.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.Orders", b =>
-                {
-                    b.HasOne("XuongMay.Contract.Repositories.Entity.Products", "Products")
-                        .WithMany()
-                        .HasForeignKey("ProductsId");
-
-                    b.HasOne("XuongMay.Contract.Repositories.Entity.UserInfo", "UserInfo")
-                        .WithMany()
-                        .HasForeignKey("UserInfoId");
-
-                    b.Navigation("Products");
-
-                    b.Navigation("UserInfo");
-                });
-
-            modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.ProductTask", b =>
+            modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.OrderTask", b =>
                 {
                     b.HasOne("XuongMay.Contract.Repositories.Entity.Conveyor", "Conveyor")
                         .WithMany()
                         .HasForeignKey("ConveyorId");
 
                     b.HasOne("XuongMay.Contract.Repositories.Entity.Orders", "Orders")
-                        .WithMany("ProductTasks")
-                        .HasForeignKey("OrdersId");
+                        .WithMany()
+                        .HasForeignKey("OrderId");
 
                     b.Navigation("Conveyor");
 
                     b.Navigation("Orders");
                 });
 
+            modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.Orders", b =>
+                {
+                    b.HasOne("XuongMay.Contract.Repositories.Entity.Products", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId");
+
+                    b.HasOne("XuongMay.Contract.Repositories.Entity.UserInfo", "UserInfo")
+                        .WithMany()
+                        .HasForeignKey("UserInfoId");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("UserInfo");
+                });
+
             modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.Products", b =>
                 {
                     b.HasOne("XuongMay.Contract.Repositories.Entity.Category", "Category")
-                        .WithMany("Products")
+                        .WithMany()
                         .HasForeignKey("CategoryId");
 
                     b.Navigation("Category");
@@ -727,16 +718,6 @@ namespace XuongMay.Repositories.Migrations
                         .HasForeignKey("UserInfoId");
 
                     b.Navigation("UserInfo");
-                });
-
-            modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.Category", b =>
-                {
-                    b.Navigation("Products");
-                });
-
-            modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.Orders", b =>
-                {
-                    b.Navigation("ProductTasks");
                 });
 #pragma warning restore 612, 618
         }

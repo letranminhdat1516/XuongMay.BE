@@ -7,10 +7,13 @@ namespace XuongMay.Repositories.Context
 {
     public class DatabaseContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid, ApplicationUserClaims, ApplicationUserRoles, ApplicationUserLogins, ApplicationRoleClaims, ApplicationUserTokens>
     {
-        public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options) 
+        public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options) { }
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            Database.Migrate();
-            //Database.EnsureCreated();
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseSqlServer("Data Source=CICCA;User ID=sa;Password=12345;Trust Server Certificate=True");
+            }
         }
 
         // user
@@ -27,23 +30,7 @@ namespace XuongMay.Repositories.Context
         public virtual DbSet<Category> Categories => Set<Category>();
         public virtual DbSet<Products> Products => Set<Products>();
         public virtual DbSet<Orders> Orders => Set<Orders>();
-        public virtual DbSet<ProductTask> ProductTasks => Set<ProductTask>();
+        public virtual DbSet<OrderTask> OrderTasks => base.Set<OrderTask>();
         public virtual DbSet<Conveyor> Conveyors => Set<Conveyor>();
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-            
-            var decimalProps = modelBuilder.Model
-            .GetEntityTypes()
-            .SelectMany(t => t.GetProperties())
-            .Where(p => (System.Nullable.GetUnderlyingType(p.ClrType) ?? p.ClrType) == typeof(decimal));
-
-            foreach (var property in decimalProps)
-            {
-                property.SetPrecision(18);
-                property.SetScale(2);
-            }
-        }   
     }
 }
