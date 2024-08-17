@@ -1,12 +1,15 @@
-﻿using XuongMay.Core.Base;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using XuongMay.Core.Base;
 
 namespace XuongMay.Contract.Repositories.Entity
 {
+    [Table("Category")]
     public class Category : BaseEntity
     {
-        public String CategoryName { get; set; } = string.Empty;
-        public String CategoryDescription { get; set; } = string.Empty;
+        public string CategoryName { get; set; } = string.Empty;
+        public string CategoryDescription { get; set; } = string.Empty;
 
-        public virtual ICollection<Products> Products { get; set; } = new List<Products>();
+        // Navigation property
+        public virtual ICollection<Products> Products { get; set; }
     }
 }
