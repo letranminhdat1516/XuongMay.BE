@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using XuongMay.Core.Base;
 
 namespace XuongMay.Contract.Repositories.Entity
@@ -15,7 +16,6 @@ namespace XuongMay.Contract.Repositories.Entity
         // Navigation property
         [ForeignKey("CategoryId")]
         public virtual Category? Category { get; set; }
-
     }
 }
 

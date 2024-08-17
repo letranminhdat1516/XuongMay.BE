@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using XuongMay.Contract.Repositories.Entity;
+using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 
 namespace XuongMay.Services.Service
@@ -11,29 +12,74 @@ namespace XuongMay.Services.Service
 
     public class CategoryService : ICategoryService
     {
-        public System.Threading.Tasks.Task CreateCategory(Contract.Repositories.Entity.OrderTask productTask)
+        //implement method of class ICategory
+        private readonly IUnitOfWork _unitOfWork;
+        
+        public CategoryService(IUnitOfWork unitOfWork)
         {
-            throw new NotImplementedException();
+            _unitOfWork = unitOfWork;
         }
 
-        public Task<bool> DeleteCategoryById(object id)
+        //get all category
+        public async Task<IList<Category>> GetAll()
         {
-            throw new NotImplementedException();
+            IList<Category> categories = await _unitOfWork.GetRepository<Category>().GetAllAsync();
+            return categories;
         }
 
-        public Task<IList<Category>> GetAll()
+        //get category by id
+        public async Task<Category> GetCategoryById(string id)
         {
-            throw new NotImplementedException();
+            Category category = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
+            return category;
         }
 
-        public Task<Category> GetCategoryById(object id)
+        //insert category
+        public async Task<bool> CreateCategory(Category category)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _unitOfWork.GetRepository<Category>().InsertAsync(category);
+                await _unitOfWork.GetRepository<Category>().SaveAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+
         }
 
-        public System.Threading.Tasks.Task UpdateCategory(Category category)
+        //remove category
+        public async Task<bool> DeleteCategoryById(string id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _unitOfWork.GetRepository<Category>().DeleteAsync(id);
+                await _unitOfWork.GetRepository<Category>().SaveAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+
+        }
+
+        //update catogory
+        public async Task<bool> UpdateCategory(Category category)
+        {
+            try
+            {
+                await _unitOfWork.GetRepository<Category>().UpdateAsync(category);
+                await _unitOfWork.GetRepository<Category>().SaveAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+
         }
     }
 }

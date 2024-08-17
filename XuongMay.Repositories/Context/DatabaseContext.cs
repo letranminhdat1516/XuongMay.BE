@@ -8,6 +8,13 @@ namespace XuongMay.Repositories.Context
     public class DatabaseContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid, ApplicationUserClaims, ApplicationUserRoles, ApplicationUserLogins, ApplicationRoleClaims, ApplicationUserTokens>
     {
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options) { }
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseSqlServer("Data Source=CICCA;User ID=sa;Password=12345;Trust Server Certificate=True");
+            }
+        }
 
         // user
         public virtual DbSet<ApplicationUser> ApplicationUsers => Set<ApplicationUser>();
@@ -25,5 +32,19 @@ namespace XuongMay.Repositories.Context
         public virtual DbSet<Orders> Orders => Set<Orders>();
         public virtual DbSet<OrderTask> OrderTasks => base.Set<OrderTask>();
         public virtual DbSet<Conveyor> Conveyors => Set<Conveyor>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Add your custom configurations here
+            modelBuilder.Entity<Category>()
+                .HasMany(c => c.Products)
+                .WithOne(p => p.Category)
+                .HasForeignKey(p => p.CategoryId);
+
+            // Add more configurations as needed
+        }
+
     }
 }
