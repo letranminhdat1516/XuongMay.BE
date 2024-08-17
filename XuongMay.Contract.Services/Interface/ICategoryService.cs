@@ -9,13 +9,11 @@ namespace XuongMay.Contract.Services.Interface
 {
     public interface ICategoryService
     {
-        // R
+        // interface CRUD of category
         Task<IList<Category>> GetAll();
-        Task<Category> GetCategoryById(object id);
-
-        // CUD
-        Task CreateCategory(ProductTask productTask);
-        Task UpdateCategory(Category category);
-        Task<bool> DeleteCategoryById(object id);
+        Task<Category> GetCategoryById(string id);
+        Task<bool> CreateCategory(Category category);
+        Task<bool> UpdateCategory(Category category);
+        Task<bool> DeleteCategoryById(string id);
     }
 }
