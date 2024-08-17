@@ -13,8 +13,8 @@ namespace XuongMay.Services.Service
     public class CategoryService : ICategoryService
     {
         //implement method of class ICategory
-
         private readonly IUnitOfWork _unitOfWork;
+        
         public CategoryService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;

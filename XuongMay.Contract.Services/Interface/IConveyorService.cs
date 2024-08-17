@@ -14,8 +14,8 @@ namespace XuongMay.Contract.Services.Interface
 
         // CUD
         Task InsertNewConveyor(Conveyor obj);
-        Task UpdateConveyor(Conveyor obj);
-        Task DeleteConveyor(object id);
+        Task UpdateConveyor(string id, ConveyorRequestModel obj);
+        Task DeleteConveyor(object id, string deleteBy);
         Task SaveAsync();
 
     }
