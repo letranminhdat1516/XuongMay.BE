@@ -14,8 +14,8 @@ namespace XuongMay.Contract.Services.Interface
         Task<Category> GetCategoryById(object id);
 
         // CUD
-        Task CreateCategory(ProductTask productTask);
-        Task UpdateCategory(Category category);
+        System.Threading.Tasks.Task CreateCategory(Repositories.Entity.OrderTask productTask);
+        System.Threading.Tasks.Task UpdateCategory(Category category);
         Task<bool> DeleteCategoryById(object id);
     }
 }

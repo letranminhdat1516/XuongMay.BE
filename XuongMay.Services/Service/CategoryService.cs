@@ -11,7 +11,7 @@ namespace XuongMay.Services.Service
 
     public class CategoryService : ICategoryService
     {
-        public Task CreateCategory(ProductTask productTask)
+        public System.Threading.Tasks.Task CreateCategory(Contract.Repositories.Entity.OrderTask productTask)
         {
             throw new NotImplementedException();
         }
@@ -31,7 +31,7 @@ namespace XuongMay.Services.Service
             throw new NotImplementedException();
         }
 
-        public Task UpdateCategory(Category category)
+        public System.Threading.Tasks.Task UpdateCategory(Category category)
         {
             throw new NotImplementedException();
         }

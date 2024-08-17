@@ -6,9 +6,6 @@
 # Migration
 Migrations/
 
-# appsettings
-XuongMayBE.API/appsettings.*.json
-
 # User-specific files
 *.rsuser
 *.suo

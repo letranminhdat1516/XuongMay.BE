@@ -13,6 +13,7 @@ namespace XuongMay.Contract.Repositories.Entity
         public string ConveyorCode { get; set; } = string.Empty;
         public string ConveyorName { get; set; } = string.Empty;
         public bool IsWorking { get; set; } = false;
+        public int MaxQuantity { get; set; }
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
     }
