@@ -7,16 +7,17 @@ namespace XuongMay.Services.Service
     public class ProductTaskService : IProductTaskService
     {
         private readonly IUnitOfWork _unitOfWork;
+
         public ProductTaskService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
         // R
-        public async Task<bool> CompareQuantityTaskOfOrderDetail(object orderDetailId)
+        public async Task DeleteTask(object id)
         {
-            // Compare that the Task Quantity has assign not > Order quantity
-            return true;
+            await _unitOfWork.GetRepository<ProductTask>().DeleteAsync(id);
+            await _unitOfWork.GetRepository<ProductTask>().SaveAsync();
         }
 
         public async Task<IList<ProductTask>> GetAll()
@@ -24,26 +25,27 @@ namespace XuongMay.Services.Service
             IList<ProductTask> productTasks = await _unitOfWork.GetRepository<ProductTask>().GetAllAsync();
             return productTasks;
         }
-        public Task<ProductTask> GetTaskOfProductById(object id)
+
+        public Task<ProductTask?> GetTaskOfProductById(object id)
         {
             throw new NotImplementedException();
         }
 
         // CUD
-        public async Task CreateTaskFromOrder(ProductTask productTask)
+        public async Task InsertNewTask(ProductTask productTask)
         {
             await _unitOfWork.GetRepository<ProductTask>().InsertAsync(productTask);
-            await _unitOfWork.GetRepository<ProductTask>().SaveAsync();
+            await SaveAsync();
         }
 
-        public Task CreateTaskFromOrderDetail(ProductTask productTask)
+        public Task UpdateQuantityToDo(int quantity)
         {
             throw new NotImplementedException();
         }
 
-        public Task UpdateCompleteQuantity(int quantity)
+        public async Task SaveAsync()
         {
-            throw new NotImplementedException();
+            await _unitOfWork.SaveAsync();
         }
     }
 }
