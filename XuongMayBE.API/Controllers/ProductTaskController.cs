@@ -15,14 +15,14 @@ namespace XuongMayBE.API.Controllers
             _productTaskService = productTaskService;
         }
 
-        [HttpGet("getAll")]
+        [HttpGet()]
         public async Task<IActionResult> GetAllProductTask()
         {
             IList<ProductTask> productTasks = await _productTaskService.GetAll();
             return Ok(BaseResponse<IList<ProductTask>>.OkResponse(productTasks));
         }
 
-        [HttpGet("Create")]
+        [HttpPost()]
         public async Task<IActionResult> CreateTask()
         {
             return Ok();

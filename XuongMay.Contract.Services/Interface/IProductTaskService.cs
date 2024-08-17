@@ -6,11 +6,11 @@ namespace XuongMay.Contract.Services.Interface
     {
         // R
         Task<IList<ProductTask>> GetAll();
-        Task<ProductTask> GetTaskOfProductById(object id);
+        Task<ProductTask?> GetTaskOfProductById(object id);
 
         // CUD
-        Task CreateTaskFromOrderDetail(ProductTask productTask);
-        Task UpdateCompleteQuantity(int quantity);
-        Task<bool> CompareQuantityTaskOfOrderDetail(object orderDetailId);
+        Task InsertNewTask(ProductTask productTask);
+        Task UpdateQuantityToDo(int quantity);
+        Task DeleteTask(object id);
     }
 }
