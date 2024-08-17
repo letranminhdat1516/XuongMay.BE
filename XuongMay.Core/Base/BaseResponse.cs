@@ -39,5 +39,15 @@ namespace XuongMay.Core.Base
         {
             return new BaseResponse<T>(StatusCodeHelper.OK, StatusCodeHelper.OK.Name(), mess);
         }
+
+        public static BaseResponse<T> ErrorResponse(string? mess)
+        {
+            return new BaseResponse<T>(StatusCodeHelper.BadRequest, StatusCodeHelper.BadRequest.Name(), mess);
+        }
+
+        public static BaseResponse<T> NotFoundResponse(string? mess)
+        {
+            return new BaseResponse<T>(StatusCodeHelper.NotFound, StatusCodeHelper.NotFound.Name(), mess);
+        }
     }
 }

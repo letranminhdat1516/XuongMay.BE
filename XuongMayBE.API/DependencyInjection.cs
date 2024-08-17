@@ -47,8 +47,15 @@ namespace XuongMayBE.API
             services
                 .AddScoped<IUserService, UserService>();
             services
-                .AddScoped<IProductTaskService, ProductTaskService>();
-            services.AddScoped<IOrderProductService,OrderProductService>();
+              .AddScoped<IOrderProductService,OrderProductService>();
+            services
+                .AddScoped<IOrderTaskService, OrderTaskService>();
+            services
+                .AddScoped<ICategoryService, CategoryService>();
+            services
+                .AddScoped<IProductService, ProductService>();
+            services
+                .AddScoped<IConveyorService, ConveyorService>();
         }
     }
 }
