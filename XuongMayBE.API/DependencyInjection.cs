@@ -45,8 +45,9 @@ namespace XuongMayBE.API
         public static void AddServices(this IServiceCollection services)
         {
             services
-                //.AddScoped<IUserService, UserService>()
                 .AddScoped<IUserService, UserService>();
+            services
+                .AddScoped<IProductTaskService, ProductTaskService>();
         }
     }
 }
