@@ -13,7 +13,7 @@ namespace XuongMay.Contract.Repositories.Entity
 
         // Navigation property
         [ForeignKey("CategoryId")]
-        public Category Category { get; set; }
+        public virtual Category Category { get; set; }
 
     }
 }

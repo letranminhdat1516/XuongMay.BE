@@ -10,6 +10,6 @@ namespace XuongMay.Contract.Repositories.Entity
         public string CategoryDescription { get; set; } = string.Empty;
 
         // Navigation property
-        public  ICollection<Products> Products { get; set; }
+        public virtual ICollection<Products> Products { get; set; }
     }
 }
