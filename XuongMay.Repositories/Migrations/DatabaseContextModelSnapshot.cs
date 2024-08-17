@@ -427,6 +427,7 @@ namespace XuongMay.Repositories.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("UserInfoId")
@@ -476,6 +477,7 @@ namespace XuongMay.Repositories.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("ProductPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");

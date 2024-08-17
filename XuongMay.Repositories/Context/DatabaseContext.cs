@@ -32,19 +32,5 @@ namespace XuongMay.Repositories.Context
         public virtual DbSet<Orders> Orders => Set<Orders>();
         public virtual DbSet<OrderTask> OrderTasks => base.Set<OrderTask>();
         public virtual DbSet<Conveyor> Conveyors => Set<Conveyor>();
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-
-            // Add your custom configurations here
-            modelBuilder.Entity<Category>()
-                .HasMany(c => c.Products)
-                .WithOne(p => p.Category)
-                .HasForeignKey(p => p.CategoryId);
-
-            // Add more configurations as needed
-        }
-
     }
 }
