@@ -12,20 +12,25 @@ namespace XuongMayBE.API.Controllers
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
-        public CategoryController(ICategoryService categoryService) {
+        public CategoryController(ICategoryService categoryService)
+        {
             _categoryService = categoryService;
         }
 
-        [HttpGet("getAllCategory")]
-        public async Task<IActionResult> GetAllCategory() {
+        //api get all category
+        [HttpGet("get-all-category")]
+        public async Task<IActionResult> GetAllCategory()
+        {
             IList<Category> categories = await _categoryService.GetAll();
-            if(categories == null){
+            if (categories == null)
+            {
                 return BadRequest();
             }
             return Ok(BaseResponse<IList<Category>>.OkResponse(categories));
         }
 
-        [HttpGet("getByCategoryId/{id}")]
+        //api get categoryby id
+        [HttpGet("get-by-category-id/{id}")]
         public async Task<IActionResult> GetCategoryById(object id)
         {
             Category category = await _categoryService.GetCategoryById(id);
@@ -34,6 +39,80 @@ namespace XuongMayBE.API.Controllers
                 return BadRequest();
             }
             return Ok(BaseResponse<Category>.OkResponse(category));
+        }
+
+        //api insert category
+        [HttpPost("insert-category/{category}")]
+        public async Task<IActionResult> InsertCategory(Category category)
+        {
+            if (category == null)
+            {
+                return BadRequest("Category cannot be null.");
+            }
+
+            try
+            {
+                bool result = await _categoryService.CreateCategory(category);
+                if (result)
+                {
+                    return Ok("Category inserted successfully.");
+                }
+                return BadRequest("Category inserted Fail !!!");
+            }
+            catch (Exception ex)
+            {
+                // Log the exception if necessary
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        //api update category
+        [HttpPut("update-category/{Category}")]
+        public async Task<IActionResult> UpdateCategory(Category category)
+        {
+            if (category == null)
+            {
+                return BadRequest("Category cannot be null");
+            }
+            try
+            {
+                bool result = await _categoryService.UpdateCategory(category);
+                if (result)
+                {
+                    return Ok("Category update successfully.");
+                }
+                return BadRequest("Category update fail !!!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        //api remove category
+        [HttpDelete("delete-category/{id}")]
+        public async Task<IActionResult> DeleteCategory(object id)
+        {
+            if (id == null)
+            {
+                return BadRequest("Plese, select category !!!");
+            }
+            try
+            {
+                bool result = await _categoryService.DeleteCategoryById(id);
+                if (result)
+                {
+                    return Ok("Category delete successfully.");
+                }
+                return BadRequest("Category delete fail !!!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "Internal server error.");
+            }
         }
     }
 }
