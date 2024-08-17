@@ -7,7 +7,7 @@
 Migrations/
 
 # appsettings
-appsettings.*.json
+XuongMayBE.API/appsettings.*.json
 
 # User-specific files
 *.rsuser
