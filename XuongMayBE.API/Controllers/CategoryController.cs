@@ -31,7 +31,7 @@ namespace XuongMayBE.API.Controllers
 
         //api get categoryby id
         [HttpGet("get-by-category-id/{id}")]
-        public async Task<IActionResult> GetCategoryById(object id)
+        public async Task<IActionResult> GetCategoryById(string id)
         {
             Category category = await _categoryService.GetCategoryById(id);
             if (category == null)
@@ -42,8 +42,8 @@ namespace XuongMayBE.API.Controllers
         }
 
         //api insert category
-        [HttpPost("insert-category/{category}")]
-        public async Task<IActionResult> InsertCategory(Category category)
+        [HttpPost("insert-category")]
+        public async Task<IActionResult> InsertCategory([FromBody] Category category)
         {
             if (category == null)
             {
@@ -93,12 +93,8 @@ namespace XuongMayBE.API.Controllers
 
         //api remove category
         [HttpDelete("delete-category/{id}")]
-        public async Task<IActionResult> DeleteCategory(object id)
+        public async Task<IActionResult> DeleteCategory(string id)
         {
-            if (id == null)
-            {
-                return BadRequest("Plese, select category !!!");
-            }
             try
             {
                 bool result = await _categoryService.DeleteCategoryById(id);

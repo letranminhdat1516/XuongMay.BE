@@ -28,7 +28,7 @@ namespace XuongMay.Services.Service
         }
 
         //get category by id
-        public async Task<Category> GetCategoryById(object id)
+        public async Task<Category> GetCategoryById(string id)
         {
             Category category = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
             return category;
@@ -51,7 +51,7 @@ namespace XuongMay.Services.Service
         }
 
         //remove category
-        public async Task<bool> DeleteCategoryById(object id)
+        public async Task<bool> DeleteCategoryById(string id)
         {
             try
             {
