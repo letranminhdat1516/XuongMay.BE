@@ -13,45 +13,85 @@ namespace XuongMayBE.API.Controllers
     public class ConvenyorController : ControllerBase
     {
         private readonly IConveyorService _conveyorService;
+
         public ConvenyorController(IConveyorService conveyorService)
         {
             _conveyorService = conveyorService;
         }
 
+        #region Lấy danh sách các băng chuyền
         [HttpGet()]
         [SwaggerOperation(Summary = "Lấy danh sách các băng chuyền có phân trang")]
         public async Task<IActionResult> GetConveyorPaging(int index = 1, int pageSize = 5)
         {
             BasePaginatedList<Conveyor> conveyors = await _conveyorService.GetAllConveyorPaging(index, pageSize);
-            return Ok(BaseResponse<BasePaginatedList<Conveyor>>.OkResponse(conveyors));
+            var response = BaseResponse<BasePaginatedList<Conveyor>>.OkResponse(conveyors);
+            return Ok(response);
         }
+        #endregion
 
+        #region Thêm mới băng chuyền
         [HttpPost()]
         [SwaggerOperation(Summary = "Tạo mới băng chuyền")]
-        public async Task<IActionResult> InsertConveyor([FromBody] ConveyorCreateModel request)
+        public async Task<IActionResult> InsertConveyor([FromBody] ConveyorRequestModel request)
         {
-            Conveyor conveyor = new Conveyor();
-            conveyor.ConveyorName = request.ConveyorName;
-            conveyor.ConveyorCode = request.ConveyorCode;
-            conveyor.ConveyorNumber = request.ConveyorNumber;
-            await _conveyorService.InsertNewConveyor(conveyor);
-            return Ok(BaseResponse<String>.OkResponse("Tạo mới băng chuyền thành công"));
-        }
+            try
+            {
+                request.CreateBy = "KietPHG";
+                await _conveyorService.InsertNewConveyor(request);
+                var response = BaseResponse<string>.OkResponse("Tạo mới băng chuyền thành công");
+                return Ok(response);
+            }
+            catch (BaseException.ErrorException ex)
+            {
+                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
+                return BadRequest(response);
+            }
 
-        [HttpPut()]
+        }
+        #endregion
+
+        #region Cập nhật thông tin băng chuyền
+        [HttpPut("{id}")]
         [SwaggerOperation(Summary = "Cập nhật thông tin băng chuyền")]
-        public async Task<IActionResult> UpdateConveyor([FromBody] Conveyor request)
+        public async Task<IActionResult> UpdateConveyor(string id, [FromBody] ConveyorUpdateModel request)
         {
-            await _conveyorService.UpdateConveyor(request);
-            return Ok(BaseResponse<String>.OkResponse("Cập nhật băng chuyền thành công"));
+            try
+            {
+                request.ConveyorId = id;
+                await _conveyorService.UpdateConveyor(request);
+                return Ok(BaseResponse<string>.OkResponse("Cập nhật băng chuyền thành công"));
+            }
+            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
+            {
+                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+            catch (BaseException.BadRequestException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
         }
+        #endregion
 
+        #region Xóa thông tin băng chuyền
         [HttpDelete("{id}")]
-        [SwaggerOperation(Summary = "Xóa thông tin băng chuyền băng chuyền")]
+        [SwaggerOperation(Summary = "Xóa thông tin băng chuyền")]
         public async Task<IActionResult> DeleteConveyor(string id)
         {
-            await _conveyorService.DeleteConveyor(id);
-            return Ok(BaseResponse<String>.OkResponse("Xóa băng chuyền thành công"));
+            try
+            {
+                await _conveyorService.DeleteConveyor(id, "KietPHG");
+                return Ok(BaseResponse<string>.OkResponse("Xóa băng chuyền thành công"));
+            }
+            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
+            {
+                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+            catch (BaseException.BadRequestException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
         }
+        #endregion
     }
 }

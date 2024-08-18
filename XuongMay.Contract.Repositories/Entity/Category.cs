@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using XuongMay.Core.Base;
 
 namespace XuongMay.Contract.Repositories.Entity
@@ -8,8 +9,5 @@ namespace XuongMay.Contract.Repositories.Entity
     {
         public string CategoryName { get; set; } = string.Empty;
         public string CategoryDescription { get; set; } = string.Empty;
-
-        // Navigation property
-        public  ICollection<Products> Products { get; set; }
     }
 }
