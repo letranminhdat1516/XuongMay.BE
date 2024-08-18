@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Azure.Core;
+using Microsoft.EntityFrameworkCore;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
@@ -25,13 +26,6 @@ namespace XuongMay.Services.Service
         }
         #endregion
 
-        #region Get All Conveyor
-        public async Task<IList<Conveyor>> GetAllConveyor()
-        {
-            return await _conveyorRepository.Entities.Where(con => con.DeletedTime == null).ToListAsync();
-        }
-        #endregion
-
         #region Get all Conveyor with paging
         public Task<BasePaginatedList<Conveyor>> GetAllConveyorPaging(int index, int pageSize)
         {
@@ -50,9 +44,15 @@ namespace XuongMay.Services.Service
         #endregion
 
         #region Insert Convenyor
-        public async Task InsertNewConveyor(Conveyor obj)
+        public async Task InsertNewConveyor(ConveyorRequestModel obj)
         {
-            await _conveyorRepository.InsertAsync(obj);
+            Conveyor conveyor = new Conveyor();
+            conveyor.ConveyorName = obj.ConveyorName;
+            conveyor.ConveyorCode = obj.ConveyorCode;
+            conveyor.ConveyorNumber = obj.ConveyorNumber;
+            conveyor.MaxQuantity = obj.MaxQuantity;
+            conveyor.CreatedBy = obj.CreateBy;
+            await _conveyorRepository.InsertAsync(conveyor);
             await SaveAsync();
         }
         #endregion
