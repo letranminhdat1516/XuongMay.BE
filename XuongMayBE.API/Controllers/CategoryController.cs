@@ -4,6 +4,7 @@ using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core.Base;
 using XuongMay.Services.Service;
+using XuongMay.ModelViews.CategoryModelViews;
 
 namespace XuongMayBE.API.Controllers
 {
@@ -43,7 +44,7 @@ namespace XuongMayBE.API.Controllers
 
         //api insert category
         [HttpPost("insert-category")]
-        public async Task<IActionResult> InsertCategory([FromBody] Category category)
+        public async Task<IActionResult> InsertCategory([FromBody] CategoryModel category)
         {
             if (category == null)
             {
@@ -68,8 +69,8 @@ namespace XuongMayBE.API.Controllers
         }
 
         //api update category
-        [HttpPut("update-category/{Category}")]
-        public async Task<IActionResult> UpdateCategory(Category category)
+        [HttpPut("update-category/{id}")]
+        public async Task<IActionResult> UpdateCategory(string id, [FromBody] CategoryModel category)
         {
             if (category == null)
             {
@@ -77,7 +78,7 @@ namespace XuongMayBE.API.Controllers
             }
             try
             {
-                bool result = await _categoryService.UpdateCategory(category);
+                bool result = await _categoryService.UpdateCategory(id, category);
                 if (result)
                 {
                     return Ok("Category update successfully.");

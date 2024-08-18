@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.ModelViews.CategoryModelViews;
 
 namespace XuongMay.Services.Service
 {
@@ -35,11 +36,16 @@ namespace XuongMay.Services.Service
         }
 
         //insert category
-        public async Task<bool> CreateCategory(Category category)
+        public async Task<bool> CreateCategory(CategoryModel category)
         {
             try
             {
-                await _unitOfWork.GetRepository<Category>().InsertAsync(category);
+                Category categoryTemp = new Category();
+                categoryTemp.CategoryName = category.CategoryName;
+                categoryTemp.CategoryDescription = category.CategoryDescription;
+                categoryTemp.CreatedTime = DateTimeOffset.UtcNow;
+                categoryTemp.LastUpdatedTime = DateTimeOffset.UtcNow;
+                await _unitOfWork.GetRepository<Category>().InsertAsync(categoryTemp);
                 await _unitOfWork.GetRepository<Category>().SaveAsync();
                 return true;
             }
@@ -67,11 +73,19 @@ namespace XuongMay.Services.Service
         }
 
         //update catogory
-        public async Task<bool> UpdateCategory(Category category)
+        public async Task<bool> UpdateCategory(string id, CategoryModel category)
         {
             try
             {
-                await _unitOfWork.GetRepository<Category>().UpdateAsync(category);
+
+                Category categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
+                if(categoryTemp == null){
+                    return false;
+                }
+                categoryTemp.CategoryName = category.CategoryName;
+                categoryTemp.CategoryDescription = category.CategoryDescription;
+                categoryTemp.LastUpdatedTime = DateTimeOffset.UtcNow;
+                await _unitOfWork.GetRepository<Category>().UpdateAsync(categoryTemp);
                 await _unitOfWork.GetRepository<Category>().SaveAsync();
                 return true;
             }
