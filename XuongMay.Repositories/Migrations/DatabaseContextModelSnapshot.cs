@@ -292,6 +292,9 @@ namespace XuongMay.Repositories.Migrations
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsWorking")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -478,6 +481,9 @@ namespace XuongMay.Repositories.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<bool>("IsDelete")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsWorking")
                         .HasColumnType("bit");
 
                     b.Property<string>("LastUpdatedBy")
