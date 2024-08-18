@@ -11,6 +11,6 @@ namespace XuongMay.ModelViews.ProductTaskModelViews
         public string Status { get; private set; } = "Processing";
 
         [JsonIgnore]
-        public required string CreateBy { get; set; }
+        public string? CreateBy { get; set; }
     }
 }

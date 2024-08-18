@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using XuongMay.Core.Utils;
 
 namespace XuongMay.Core.Base
@@ -19,5 +20,7 @@ namespace XuongMay.Core.Base
         public DateTimeOffset CreatedTime { get; set; }
         public DateTimeOffset LastUpdatedTime { get; set; }
         public DateTimeOffset? DeletedTime { get; set; }
+        [DefaultValue(false)]
+        public bool IsDelete { get; set; }
     }
 }

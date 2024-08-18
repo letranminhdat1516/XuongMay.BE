@@ -15,6 +15,6 @@ namespace XuongMay.ModelViews.OrderTaskModelViews
         }
 
         [JsonIgnore]
-        public required string UpdateBy { get; set; }
+        public string? UpdateBy { get; set; }
     }
 }
