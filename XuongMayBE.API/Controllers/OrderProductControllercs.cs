@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core.Base;
@@ -18,6 +19,7 @@ namespace XuongMayBE.API.Controllers
         }
         //get all order
         [HttpGet("all-order")]
+        [SwaggerOperation(Summary = "Lấy tất cả order")]
         public async Task<IActionResult> GetAllOrder()
         {
             IList<Orders> orders=await _orderProductService.GetAllAsync();
@@ -25,12 +27,14 @@ namespace XuongMayBE.API.Controllers
         }
         //get a specific order
         [HttpGet("/{id}")]
+        [SwaggerOperation(Summary = "Lấy order dựa theo orderId")]
         public async Task<Orders?> GetOrderById([FromRoute] string id)
         {
             return await _orderProductService.GetByIdAsync(id);            
         }
         //create a new order
         [HttpPost("/orders")]
+        [SwaggerOperation(Summary = "Tạo 1 order mới")]
         public async Task<IActionResult> CreateOrder([FromBody] OrderModelView orderModelView)
         {
             Task createOrder = _orderProductService.CreateOrder(orderModelView);
@@ -46,6 +50,7 @@ namespace XuongMayBE.API.Controllers
         }
         //change an exited order
         [HttpPut("/update-order/{id}")]
+        [SwaggerOperation(Summary = "Chỉnh sửa 1 order dựa theo Id")]
         public async Task<IActionResult> UpdateOrder(string id, OrderModelView orderModelView)
         {
             Task updateOrder = _orderProductService.UpdateAsync(id,orderModelView);
@@ -61,6 +66,7 @@ namespace XuongMayBE.API.Controllers
         }
         //delete an order
         [HttpDelete("/delete/{id}")]
+        [SwaggerOperation(Summary = "Xoá 1 order")]
         public async Task<IActionResult> DeleteOrder(string id)
         {
             //Orders deletedOrder = await _orderProductService.GetByIdAsync(id);

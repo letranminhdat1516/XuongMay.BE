@@ -41,7 +41,6 @@ namespace XuongMay.Services.Service
         {
             Orders _order = new Orders
             {                
-                UserInfoId = order.UserInfoId,
                 ProductId = order.ProductId,
                 OrdersCode = order.OrdersCode,
                 Quantity = order.Quantity,
@@ -56,7 +55,6 @@ namespace XuongMay.Services.Service
             if(_order != null) 
             {
                 await _orderRepository.UpdateAsync(_order);                
-                _order.UserInfoId = order.UserInfoId;
                 _order.ProductId = order.ProductId;
                 _order.OrdersCode = order.OrdersCode;
                 _order.Quantity = order.Quantity;
