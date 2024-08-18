@@ -8,14 +8,14 @@ namespace XuongMay.Contract.Services.Interface
     public interface IOrderTaskService
     {
         // R
-        Task<IList<OrderTask>> GetAllOrderTask();
-        Task<BasePaginatedList<OrderTask>> GetAllOrderTaskWithPaging(int index, int pageSize);
-        Task<OrderTask?> GetOrderTaskById(object id);
+        Task<BasePaginatedList<OrderTask>> GetAllOrderTask(int index, int pageSize);
+        Task<BasePaginatedList<OrderTask>> GetAllOrderTaskByFiler(string keyword, int index, int pageSize);
 
         // CUD
         Task InsertOrderTask(OrderTaskRequestModel obj);
         Task UpdateOrderTask(OrderTaskUpdateModel obj);
         Task UpdateOrderTaskStatus(OrderTaskUpdateModel obj);
+        Task UpdateOrderTaskCompleteQuantity(object orderTaskId, int quantity);
         Task DeleteOrderTask(object orderTaskId, string deleteBy);
     }
 }

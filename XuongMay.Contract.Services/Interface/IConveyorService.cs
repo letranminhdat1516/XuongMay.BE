@@ -8,8 +8,7 @@ namespace XuongMay.Contract.Services.Interface
     {
         // R
         Task<BasePaginatedList<Conveyor>> GetAllConveyorPaging(int index, int pageSize);
-        Task<Conveyor?> GetOneConveyor(object id);
-
+        Task<BasePaginatedList<Conveyor>> GetConveyorByFilter(string keyword, int index, int pageSize);
 
         // CUD
         Task InsertNewConveyor(ConveyorRequestModel obj);
