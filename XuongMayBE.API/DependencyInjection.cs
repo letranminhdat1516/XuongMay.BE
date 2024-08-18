@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using XuongMay.Contract.Repositories.Entity;
@@ -18,6 +19,7 @@ namespace XuongMayBE.API
         {
             services.ConfigRoute();
             services.AddDatabase(configuration);
+            services.AddSwaggerGen();
             services.AddIdentity();
             services.AddInfrastructure(configuration);
             services.AddServices();
@@ -29,6 +31,7 @@ namespace XuongMayBE.API
                 options.LowercaseUrls = true;
             });
         }
+
         public static void AddDatabase(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<DatabaseContext>(options =>
@@ -45,6 +48,38 @@ namespace XuongMayBE.API
              .AddEntityFrameworkStores<DatabaseContext>()
              .AddDefaultTokenProviders();
         }
+
+        public static void AddSwaggerGen(this IServiceCollection services)
+        {
+            services.AddSwaggerGen(option =>
+            {
+                option.EnableAnnotations();
+                option.AddSecurityDefinition(name: JwtBearerDefaults.AuthenticationScheme,
+                    securityScheme: new OpenApiSecurityScheme
+                    {
+                        Name = "Authorization",
+                        Description = "Enter Bearer Authorization: `Bearer Generated-JWT-Token`",
+                        In = ParameterLocation.Header,
+                        Type = SecuritySchemeType.ApiKey,
+                        Scheme = "Bearer"
+                    });
+                option.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = JwtBearerDefaults.AuthenticationScheme
+                            }
+                        },new string[]{}
+                    }
+
+                });
+            });
+        }
+
         public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
             var key = Encoding.ASCII.GetBytes(configuration["Jwt:Key"]);
@@ -67,12 +102,13 @@ namespace XuongMayBE.API
                 };
             });
         }
+
         public static void AddServices(this IServiceCollection services)
         {
             services
                 .AddScoped<IUserService, UserService>();
             services
-              .AddScoped<IOrderProductService,OrderProductService>();
+              .AddScoped<IOrderProductService, OrderProductService>();
             services
                 .AddScoped<IOrderTaskService, OrderTaskService>();
             services

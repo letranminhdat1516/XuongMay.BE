@@ -58,19 +58,26 @@ namespace XuongMay.Services.Service
         #endregion
 
         #region Update Convenyor
-        public async Task UpdateConveyor(string id, ConveyorRequestModel obj)
+        public async Task UpdateConveyor(ConveyorUpdateModel obj)
         {
-            var conveyor = _conveyorRepository.GetById(id);
+            var conveyor = _conveyorRepository.GetById(obj.ConveyorId);
             if (conveyor == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy băng chuyền");
             }
+
+            if (conveyor.IsWorking)
+            {
+                throw new BaseException.BadRequestException("Bad Request", "Không thể cập nhật! Băng chuyền đang hoạt động");
+            }
+
             conveyor.ConveyorNumber = obj.ConveyorNumber;
             conveyor.ConveyorName = obj.ConveyorName;
             conveyor.ConveyorCode = obj.ConveyorCode;
-            conveyor.IsWorking = obj.IsWorking;
+            conveyor.MaxQuantity = obj.MaxQuantity;
             conveyor.LastUpdatedTime = CoreHelper.SystemTimeNow;
             conveyor.LastUpdatedBy = obj.UpdateBy;
+
             await _conveyorRepository.UpdateAsync(conveyor);
             await SaveAsync();
         }
@@ -84,6 +91,11 @@ namespace XuongMay.Services.Service
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy băng chuyền");
             }
+            if (conveyor.IsWorking)
+            {
+                throw new BaseException.BadRequestException("Bad Request", "Không thể xóa! Băng chuyền đang hoạt động");
+            }
+
             conveyor.DeletedTime = CoreHelper.SystemTimeNow;
             conveyor.DeletedBy = deleteBy;
             await _conveyorRepository.UpdateAsync(conveyor);

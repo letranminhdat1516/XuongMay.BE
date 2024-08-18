@@ -1,5 +1,6 @@
 ﻿using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Core;
+using XuongMay.ModelViews.OrderTaskModelViews;
 using XuongMay.ModelViews.ProductTaskModelViews;
 
 namespace XuongMay.Contract.Services.Interface
@@ -12,9 +13,9 @@ namespace XuongMay.Contract.Services.Interface
         Task<OrderTask?> GetOrderTaskById(object id);
 
         // CUD
-        Task InsertOrderTask(OrderTask obj);
-        Task UpdateOrderTask(string id, OrderTaskRequestModel obj);
-        Task UpdateOrderTaskStatus(string id, OrderTaskRequestModel obj);
-        Task DeleteOrderTask(object id, string deleteBy);
+        Task InsertOrderTask(OrderTaskRequestModel obj);
+        Task UpdateOrderTask(OrderTaskUpdateModel obj);
+        Task UpdateOrderTaskStatus(OrderTaskUpdateModel obj);
+        Task DeleteOrderTask(object orderTaskId, string deleteBy);
     }
 }
