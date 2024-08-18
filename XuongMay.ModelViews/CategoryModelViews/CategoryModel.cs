@@ -8,9 +8,7 @@ namespace XuongMay.ModelViews.CategoryModelViews
 {
     public class CategoryModel
     {
-        public string ProductName { get; set; } = string.Empty;
-        public string ProductDescription { get; set; } = string.Empty;
-        public float ProductPrice { get; set; }
-        public string? CategoryId { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
+        public string CategoryDescription { get; set; } = string.Empty;
     }
 }

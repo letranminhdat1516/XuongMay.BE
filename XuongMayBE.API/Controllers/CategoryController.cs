@@ -22,24 +22,24 @@ namespace XuongMayBE.API.Controllers
         [HttpGet("get-all-category")]
         public async Task<IActionResult> GetAllCategory()
         {
-            IList<CategoryModel> categories = await _categoryService.GetAll();
+            IList<Category> categories = await _categoryService.GetAll();
             if (categories == null)
             {
                 return BadRequest();
             }
-            return Ok(BaseResponse<IList<CategoryModel>>.OkResponse(categories));
+            return Ok(BaseResponse<IList<Category>>.OkResponse(categories));
         }
 
         //api get categoryby id
         [HttpGet("get-by-category-id/{id}")]
         public async Task<IActionResult> GetCategoryById(string id)
         {
-            CategoryModel category = await _categoryService.GetCategoryById(id);
+            Category category = await _categoryService.GetCategoryById(id);
             if (category == null)
             {
                 return BadRequest();
             }
-            return Ok(BaseResponse<CategoryModel>.OkResponse(category));
+            return Ok(BaseResponse<Category>.OkResponse(category));
         }
 
         //api insert category
@@ -69,8 +69,8 @@ namespace XuongMayBE.API.Controllers
         }
 
         //api update category
-        [HttpPut("update-category/{Category}")]
-        public async Task<IActionResult> UpdateCategory(CategoryModel category)
+        [HttpPut("update-category/{id}")]
+        public async Task<IActionResult> UpdateCategory(string id, [FromBody] CategoryModel category)
         {
             if (category == null)
             {
@@ -78,7 +78,7 @@ namespace XuongMayBE.API.Controllers
             }
             try
             {
-                bool result = await _categoryService.UpdateCategory(category);
+                bool result = await _categoryService.UpdateCategory(id, category);
                 if (result)
                 {
                     return Ok("Category update successfully.");

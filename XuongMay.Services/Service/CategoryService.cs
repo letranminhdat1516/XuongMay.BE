@@ -22,16 +22,16 @@ namespace XuongMay.Services.Service
         }
 
         //get all category
-        public async Task<IList<CategoryModel>> GetAll()
+        public async Task<IList<Category>> GetAll()
         {
-            IList<CategoryModel> categories = await _unitOfWork.GetRepository<CategoryModel>().GetAllAsync();
+            IList<Category> categories = await _unitOfWork.GetRepository<Category>().GetAllAsync();
             return categories;
         }
 
         //get category by id
-        public async Task<CategoryModel> GetCategoryById(string id)
+        public async Task<Category> GetCategoryById(string id)
         {
-            CategoryModel category = await _unitOfWork.GetRepository<CategoryModel>().GetByIdAsync(id);
+            Category category = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
             return category;
         }
 
@@ -40,8 +40,13 @@ namespace XuongMay.Services.Service
         {
             try
             {
-                await _unitOfWork.GetRepository<CategoryModel>().InsertAsync(category);
-                await _unitOfWork.GetRepository<CategoryModel>().SaveAsync();
+                Category categoryTemp = new Category();
+                categoryTemp.CategoryName = category.CategoryName;
+                categoryTemp.CategoryDescription = category.CategoryDescription;
+                categoryTemp.CreatedTime = DateTimeOffset.UtcNow;
+                categoryTemp.LastUpdatedTime = DateTimeOffset.UtcNow;
+                await _unitOfWork.GetRepository<Category>().InsertAsync(categoryTemp);
+                await _unitOfWork.GetRepository<Category>().SaveAsync();
                 return true;
             }
             catch
@@ -56,8 +61,8 @@ namespace XuongMay.Services.Service
         {
             try
             {
-                await _unitOfWork.GetRepository<CategoryModel>().DeleteAsync(id);
-                await _unitOfWork.GetRepository<CategoryModel>().SaveAsync();
+                await _unitOfWork.GetRepository<Category>().DeleteAsync(id);
+                await _unitOfWork.GetRepository<Category>().SaveAsync();
                 return true;
             }
             catch
@@ -68,12 +73,20 @@ namespace XuongMay.Services.Service
         }
 
         //update catogory
-        public async Task<bool> UpdateCategory(CategoryModel category)
+        public async Task<bool> UpdateCategory(string id, CategoryModel category)
         {
             try
             {
-                await _unitOfWork.GetRepository<CategoryModel>().UpdateAsync(category);
-                await _unitOfWork.GetRepository<CategoryModel>().SaveAsync();
+
+                Category categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
+                if(categoryTemp == null){
+                    return false;
+                }
+                categoryTemp.CategoryName = category.CategoryName;
+                categoryTemp.CategoryDescription = category.CategoryDescription;
+                categoryTemp.LastUpdatedTime = DateTimeOffset.UtcNow;
+                await _unitOfWork.GetRepository<Category>().UpdateAsync(categoryTemp);
+                await _unitOfWork.GetRepository<Category>().SaveAsync();
                 return true;
             }
             catch

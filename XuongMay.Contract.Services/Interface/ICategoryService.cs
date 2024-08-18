@@ -11,10 +11,10 @@ namespace XuongMay.Contract.Services.Interface
     public interface ICategoryService
     {
         // interface CRUD of category
-        Task<IList<CategoryModel>> GetAll();
-        Task<CategoryModel> GetCategoryById(string id);
+        Task<IList<Category>> GetAll();
+        Task<Category> GetCategoryById(string id);
         Task<bool> CreateCategory(CategoryModel category);
-        Task<bool> UpdateCategory(CategoryModel category);
+        Task<bool> UpdateCategory(string id, CategoryModel category);
         Task<bool> DeleteCategoryById(string id);
     }
 }
