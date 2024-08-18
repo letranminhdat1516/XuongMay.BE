@@ -4,6 +4,7 @@ using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
 using XuongMay.Core.Base;
 using XuongMay.Core.Utils;
+using XuongMay.ModelViews.OrderTaskModelViews;
 using XuongMay.ModelViews.ProductTaskModelViews;
 
 namespace XuongMay.Services.Service
@@ -59,127 +60,119 @@ namespace XuongMay.Services.Service
         #endregion
 
         #region Insert Order Task
-        public async Task InsertOrderTask(OrderTask obj)
+        public async Task InsertOrderTask(OrderTaskRequestModel obj)
         {
-            if (obj == null
-                || obj.OrderId == null
-                || obj.ConveyorId == null)
+            if (obj?.OrderId == null || obj?.ConveyorId == null)
             {
-                throw new BaseException.BadRequestException("Bad Request", "Thêm dữ liệu thất bại");
+                throw new BaseException.BadRequestException("Bad Request", "Vui lòng chọn băng chuyền và đơn hàng");
             }
 
             var conveyor = _conveyorRepository.GetById(obj.ConveyorId);
-            bool checkOrder = IsOrderTaskQuantityOutOfOrderRange(obj.OrderId, obj.Quantity);
-            bool checkConveyor = IsOrderTaskQuantityOutOfConveyorRange(obj.ConveyorId, obj.Quantity);
-
-            if (conveyor == null)
-            {
-                throw new BaseException.BadRequestException("Bad Request", "Không tìm thấy băng chuyền");
-            }
-
-            if (conveyor.IsWorking)
-            {
-                throw new BaseException.ErrorException(400, "Bad Request", "Băng chuyền này đang hoạt động");
-            }
-
-            if (checkOrder)
-            {
-                throw new BaseException.ErrorException(400, "Bad Request", "Số lượng yêu câu vượt quá số lượng đơn hàng");
-            }
-
-            if (checkConveyor)
-            {
-                throw new BaseException.ErrorException(400, "Bad Request", "Số lượng đơn hàng vượt quá số lượng tối đa của băng chuyền");
-            }
-
-            conveyor.IsWorking = true;
-            await _orderTaskRepository.InsertAsync(obj);
-            await _conveyorRepository.UpdateAsync(conveyor);
-            await SaveAsync();
-        }
-        #endregion
-
-        #region Update Order Task
-        public async Task UpdateOrderTask(string id, OrderTaskRequestModel obj)
-        {
-            var orderTask = await GetOrderTaskById(id);
-            if (orderTask == null)
-            {
-                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy nhiệm vụ");
-            }
-            orderTask.TaskNote = obj.TaskNote;
-            orderTask.Quantity = obj.Quantity;
-            orderTask.Status = obj.Status;
-            orderTask.LastUpdatedTime = CoreHelper.SystemTimeNow;
-            orderTask.LastUpdatedBy = obj.UpdateBy;
-            await _orderTaskRepository.UpdateAsync(orderTask);
-            await SaveAsync();
-        }
-        #endregion
-
-        #region Delete Order Task
-        public async Task DeleteOrderTask(object id, string deleteBy)
-        {
-            var orderTask = await _orderTaskRepository.GetByIdAsync(id);
-            if (orderTask == null)
-            {
-                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy nhiệm vụ");
-            }
-            orderTask.DeletedBy = deleteBy;
-            orderTask.DeletedTime = CoreHelper.SystemTimeNow;
-            await _orderTaskRepository.UpdateAsync(orderTask);
-            //await _orderTaskRepository.DeleteAsync(id);
-            await SaveAsync();
-        }
-        #endregion
-
-        #region Update Order Task Status
-        public async Task UpdateOrderTaskStatus(string id, OrderTaskRequestModel obj)
-        {
-            var orderTask = await _orderTaskRepository.GetByIdAsync(id);
-            if (orderTask == null)
-            {
-                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy nhiệm vụ");
-            }
-            orderTask.Status = obj.Status;
-            orderTask.LastUpdatedTime = CoreHelper.SystemTimeNow;
-            orderTask.LastUpdatedBy = obj.UpdateBy ?? string.Empty;
-            await _orderTaskRepository.UpdateAsync(orderTask);
-            await SaveAsync();
-        }
-        #endregion
-
-        #region Compare the quantity of order task and order
-        public bool IsOrderTaskQuantityOutOfOrderRange(string orderId, int taskQuantity)
-        {
-            bool result = false;
-            var order = _orderRepository.GetById(orderId);
-
-            if (order == null)
-            {
-                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy đơn hàng");
-            }
-
-            result = order.Quantity >= taskQuantity;
-
-            return result;
-        }
-        #endregion
-
-        #region Compare conveyor max quantity and order task
-        public bool IsOrderTaskQuantityOutOfConveyorRange(string conveyorId, int taskQuantity)
-        {
-            bool result = false;
-            var conveyor = _conveyorRepository.GetById(conveyorId);
 
             if (conveyor == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy băng chuyền");
             }
 
-            result = conveyor.MaxQuantity >= taskQuantity;
+            var orderTask = new OrderTask
+            {
+                OrderId = obj.OrderId,
+                ConveyorId = obj.ConveyorId,
+                TaskNote = obj.TaskNote,
+                Quantity = obj.Quantity,
+                CreatedBy = obj.CreateBy,
+            };
 
-            return result;
+            await ValidateRequestData(conveyor, orderTask);
+
+            conveyor.IsWorking = true;
+
+            await _orderTaskRepository.InsertAsync(orderTask);
+            await _conveyorRepository.UpdateAsync(conveyor);
+            await SaveAsync();
+        }
+        #endregion
+
+        #region Update Order Task
+        public async Task UpdateOrderTask(OrderTaskUpdateModel obj)
+        {
+            var orderTask = await GetOrderTaskById(obj.OrderTaskId);
+            if (orderTask == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy nhiệm vụ");
+            }
+
+            var conveyor = _conveyorRepository.GetById(orderTask.ConveyorId);
+
+            if (conveyor == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy băng chuyền");
+            }
+
+            orderTask.Quantity = obj.Quantity;
+            orderTask.TaskNote = obj.TaskNote;
+            orderTask.LastUpdatedBy = obj.UpdateBy;
+            orderTask.LastUpdatedTime = CoreHelper.SystemTimeNow;
+
+            await ValidateRequestData(conveyor, orderTask);
+
+            await _orderTaskRepository.UpdateAsync(orderTask);
+            await SaveAsync();
+        }
+        #endregion
+
+        #region Update Order Task Status
+        public async Task UpdateOrderTaskStatus(OrderTaskUpdateModel obj)
+        {
+            var orderTask = await _orderTaskRepository.GetByIdAsync(obj.OrderTaskId);
+
+            if (orderTask == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy nhiệm vụ");
+            }
+
+            var conveyor = await _conveyorRepository.GetByIdAsync(orderTask.ConveyorId);
+
+            if (conveyor == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy băng chuyền");
+            }
+
+            orderTask.Status = obj.Status;
+            orderTask.LastUpdatedTime = CoreHelper.SystemTimeNow;
+            orderTask.LastUpdatedBy = obj.UpdateBy ?? string.Empty;
+            conveyor.IsWorking = obj.Status == "Processing" ? true : false;
+            await _orderTaskRepository.UpdateAsync(orderTask);
+            await _conveyorRepository.UpdateAsync(conveyor);
+            await SaveAsync();
+        }
+        #endregion
+
+        #region Delete Order Task
+        public async Task DeleteOrderTask(object orderTaskId, string deleteBy)
+        {
+            var orderTask = await GetOrderTaskById(orderTaskId);
+
+            if (orderTask == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy nhiệm vụ");
+            }
+
+            var conveyor = await _conveyorRepository.GetByIdAsync(orderTask.ConveyorId);
+            if (conveyor == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy băng chuyền");
+            }
+
+            if (conveyor.IsWorking)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Băng chuyền đang hoạt động không thể xóa");
+            }
+
+            orderTask.DeletedBy = deleteBy;
+            orderTask.DeletedTime = CoreHelper.SystemTimeNow;
+            await _orderTaskRepository.UpdateAsync(orderTask);
+            await SaveAsync();
         }
         #endregion
 
@@ -190,5 +183,106 @@ namespace XuongMay.Services.Service
         }
 
         #endregion
+
+        // So sánh các dữ liệu
+
+        #region Compare the quantity of order task and order
+        public async Task<bool> IsOrderTaskQuantityOutOfOrderRange(string orderId, int taskQuantity)
+        {
+            bool result = false;
+            int orderQuantity = await GetOrderQuantity(orderId);
+
+            result = orderQuantity >= taskQuantity;
+
+            return result;
+        }
+        #endregion
+
+        #region Compare conveyor max quantity and order task
+        public async Task<bool> IsOrderTaskQuantityOutOfConveyorRange(string conveyorId, int taskQuantity)
+        {
+            bool result = false;
+            int maxConveyor = await GetMaxConveyor(conveyorId);
+
+            result = taskQuantity > maxConveyor;
+
+            return result;
+        }
+        #endregion
+
+        #region Total Quantity OrderTask Of Order
+        public Task<int> TotalQuantityOrderTaskOfOrder(object orderId)
+        {
+            int totalQuantity = _orderTaskRepository.Entities.Where(ordTask => ordTask.OrderId.Equals(orderId) && ordTask.DeletedTime == null).Sum(ord => ord.Quantity);
+            return Task.FromResult(totalQuantity);
+        }
+        #endregion
+
+        #region Get Order Quantity
+        public async Task<int> GetOrderQuantity(object id)
+        {
+            var order = await _orderRepository.GetByIdAsync(id);
+            if (order == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy đơn hàng");
+            }
+
+            return order.Quantity;
+        }
+        #endregion
+
+        #region Get Max Conveyor
+        public async Task<int> GetMaxConveyor(object conveyorId)
+        {
+            var conveyor = await _conveyorRepository.GetByIdAsync(conveyorId);
+
+            if (conveyor == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy băng chuyền");
+            }
+            return conveyor.MaxQuantity;
+        }
+        #endregion
+
+        // Kiểm tra dữ liệu đầu vào
+
+        #region Validate request order task data
+        public async Task ValidateRequestData(Conveyor conveyor, OrderTask obj)
+        {
+            bool checkOrder = await IsOrderTaskQuantityOutOfOrderRange(obj.OrderId, obj.Quantity);
+            bool checkConveyor = await IsOrderTaskQuantityOutOfConveyorRange(obj.ConveyorId, obj.Quantity);
+            bool checkQuantity = obj.Quantity > 1;
+            int totalQuantityOfOrderTask = await TotalQuantityOrderTaskOfOrder(obj.OrderId);
+            int orderQuantity = await GetOrderQuantity(obj.OrderId);
+            int maxConveyor = await GetMaxConveyor(obj.ConveyorId);
+            int remainingQuantity = orderQuantity - totalQuantityOfOrderTask;
+
+            if (conveyor.IsWorking)
+            {
+                throw new BaseException.BadRequestException("Bad Request", "Băng chuyền này đang hoạt động");
+            }
+
+            if (!checkQuantity)
+            {
+                throw new BaseException.BadRequestException("Bad Request", "Số lượng đơn hàng ít nhất là 1");
+            }
+
+            if (checkConveyor)
+            {
+                throw new BaseException.BadRequestException("Bad Request", $"Số lượng đơn hàng vượt quá số lượng tối đa của băng chuyền (Tối đa: {maxConveyor})");
+            }
+
+            if (!checkOrder)
+            {
+                throw new BaseException.BadRequestException("Bad Request", $"Số lượng yêu cầu vượt quá số lượng đơn hàng! Còn ({orderQuantity} chưa xử lí)");
+            }
+
+            if (obj.Quantity > remainingQuantity)
+            {
+                throw new BaseException.BadRequestException("Bad Request", $"Số lượng yêu cầu vượt quá số lượng đơn hàng! Còn ({remainingQuantity} chưa xử lí)");
+            }
+        }
+        #endregion
+
     }
 }

@@ -16,7 +16,6 @@ builder.Configuration
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c => c.EnableAnnotations());
 
 // Retrieve JWT settings from appsettings.json
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
