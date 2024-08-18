@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.ModelViews.CategoryModelViews;
 
 namespace XuongMay.Services.Service
 {
@@ -21,26 +22,26 @@ namespace XuongMay.Services.Service
         }
 
         //get all category
-        public async Task<IList<Category>> GetAll()
+        public async Task<IList<CategoryModel>> GetAll()
         {
-            IList<Category> categories = await _unitOfWork.GetRepository<Category>().GetAllAsync();
+            IList<CategoryModel> categories = await _unitOfWork.GetRepository<CategoryModel>().GetAllAsync();
             return categories;
         }
 
         //get category by id
-        public async Task<Category> GetCategoryById(string id)
+        public async Task<CategoryModel> GetCategoryById(string id)
         {
-            Category category = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
+            CategoryModel category = await _unitOfWork.GetRepository<CategoryModel>().GetByIdAsync(id);
             return category;
         }
 
         //insert category
-        public async Task<bool> CreateCategory(Category category)
+        public async Task<bool> CreateCategory(CategoryModel category)
         {
             try
             {
-                await _unitOfWork.GetRepository<Category>().InsertAsync(category);
-                await _unitOfWork.GetRepository<Category>().SaveAsync();
+                await _unitOfWork.GetRepository<CategoryModel>().InsertAsync(category);
+                await _unitOfWork.GetRepository<CategoryModel>().SaveAsync();
                 return true;
             }
             catch
@@ -55,8 +56,8 @@ namespace XuongMay.Services.Service
         {
             try
             {
-                await _unitOfWork.GetRepository<Category>().DeleteAsync(id);
-                await _unitOfWork.GetRepository<Category>().SaveAsync();
+                await _unitOfWork.GetRepository<CategoryModel>().DeleteAsync(id);
+                await _unitOfWork.GetRepository<CategoryModel>().SaveAsync();
                 return true;
             }
             catch
@@ -67,12 +68,12 @@ namespace XuongMay.Services.Service
         }
 
         //update catogory
-        public async Task<bool> UpdateCategory(Category category)
+        public async Task<bool> UpdateCategory(CategoryModel category)
         {
             try
             {
-                await _unitOfWork.GetRepository<Category>().UpdateAsync(category);
-                await _unitOfWork.GetRepository<Category>().SaveAsync();
+                await _unitOfWork.GetRepository<CategoryModel>().UpdateAsync(category);
+                await _unitOfWork.GetRepository<CategoryModel>().SaveAsync();
                 return true;
             }
             catch

@@ -4,6 +4,7 @@ using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core.Base;
 using XuongMay.Services.Service;
+using XuongMay.ModelViews.CategoryModelViews;
 
 namespace XuongMayBE.API.Controllers
 {
@@ -21,29 +22,29 @@ namespace XuongMayBE.API.Controllers
         [HttpGet("get-all-category")]
         public async Task<IActionResult> GetAllCategory()
         {
-            IList<Category> categories = await _categoryService.GetAll();
+            IList<CategoryModel> categories = await _categoryService.GetAll();
             if (categories == null)
             {
                 return BadRequest();
             }
-            return Ok(BaseResponse<IList<Category>>.OkResponse(categories));
+            return Ok(BaseResponse<IList<CategoryModel>>.OkResponse(categories));
         }
 
         //api get categoryby id
         [HttpGet("get-by-category-id/{id}")]
         public async Task<IActionResult> GetCategoryById(string id)
         {
-            Category category = await _categoryService.GetCategoryById(id);
+            CategoryModel category = await _categoryService.GetCategoryById(id);
             if (category == null)
             {
                 return BadRequest();
             }
-            return Ok(BaseResponse<Category>.OkResponse(category));
+            return Ok(BaseResponse<CategoryModel>.OkResponse(category));
         }
 
         //api insert category
         [HttpPost("insert-category")]
-        public async Task<IActionResult> InsertCategory([FromBody] Category category)
+        public async Task<IActionResult> InsertCategory([FromBody] CategoryModel category)
         {
             if (category == null)
             {
@@ -69,7 +70,7 @@ namespace XuongMayBE.API.Controllers
 
         //api update category
         [HttpPut("update-category/{Category}")]
-        public async Task<IActionResult> UpdateCategory(Category category)
+        public async Task<IActionResult> UpdateCategory(CategoryModel category)
         {
             if (category == null)
             {
