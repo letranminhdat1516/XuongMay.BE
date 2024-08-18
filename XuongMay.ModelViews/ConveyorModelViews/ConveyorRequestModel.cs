@@ -13,6 +13,6 @@ namespace XuongMay.ModelViews.ConveyorModelViews
         public bool IsWorking { get; set; } = false;
 
         [JsonIgnore]
-        public required string CreateBy { get; set; }
+        public string? CreateBy { get; set; }
     }
 }

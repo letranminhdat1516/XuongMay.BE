@@ -37,14 +37,8 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                Conveyor conveyor = new Conveyor();
-                conveyor.ConveyorName = request.ConveyorName;
-                conveyor.ConveyorCode = request.ConveyorCode;
-                conveyor.ConveyorNumber = request.ConveyorNumber;
-                conveyor.MaxQuantity = request.MaxQuantity;
-                conveyor.CreatedBy = "KietPHG";
-
-                await _conveyorService.InsertNewConveyor(conveyor);
+                request.CreateBy = "KietPHG";
+                await _conveyorService.InsertNewConveyor(request);
                 var response = BaseResponse<string>.OkResponse("Tạo mới băng chuyền thành công");
                 return Ok(response);
             }

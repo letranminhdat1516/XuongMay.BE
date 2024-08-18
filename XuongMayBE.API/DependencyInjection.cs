@@ -19,6 +19,7 @@ namespace XuongMayBE.API
         {
             services.ConfigRoute();
             services.AddDatabase(configuration);
+            services.AddJwtAuthentication(configuration);
             services.AddSwaggerGen();
             services.AddIdentity();
             services.AddInfrastructure(configuration);
