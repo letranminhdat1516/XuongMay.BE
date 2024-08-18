@@ -2,6 +2,7 @@
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.Core.Utils;
 using XuongMay.ModelViews.AuthModelViews;
 using XuongMay.ModelViews.UserModelViews;
 using XuongMay.Repositories.Entity;
@@ -66,7 +67,8 @@ namespace XuongMay.Services.Service
                 PasswordHash = hashedPassword,
                 Email = model.Email,
                 PhoneNumber = model.PhoneNumber,
-                CreatedTime = DateTimeOffset.UtcNow
+                CreatedTime = CoreHelper.SystemTimeNow,
+                LastUpdatedTime = CoreHelper.SystemTimeNow
             };
 
             // Lưu người dùng mới vào cơ sở dữ liệu
@@ -82,8 +84,8 @@ namespace XuongMay.Services.Service
                     Name = "ConveyorManager",
                     NormalizedName = "CONVEYORMANAGER",
                     ConcurrencyStamp = Guid.NewGuid().ToString(),
-                    CreatedTime = DateTimeOffset.UtcNow,
-                    LastUpdatedTime = DateTimeOffset.UtcNow
+                    CreatedTime = CoreHelper.SystemTimeNow,
+                    LastUpdatedTime = CoreHelper.SystemTimeNow
                 };
                 await _roleRepo.InsertAsync(role);
                 await _unitOfWork.SaveAsync();
@@ -94,7 +96,8 @@ namespace XuongMay.Services.Service
             {
                 UserId = user.Id,
                 RoleId = role.Id,
-                CreatedTime = DateTimeOffset.UtcNow
+                CreatedTime = CoreHelper.SystemTimeNow,
+                LastUpdatedTime = CoreHelper.SystemTimeNow
             };
             await _userRoleRepo.InsertAsync(userRole);
             await _unitOfWork.SaveAsync();

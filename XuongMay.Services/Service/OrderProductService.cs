@@ -9,23 +9,22 @@ using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
 using XuongMay.Repositories.UOW;
+using XuongMay.ModelViews.OrderModelViews;
+using XuongMay.Core.Base;
+using XuongMay.Repositories.Context;
 
 namespace XuongMay.Services.Service
 {
-    public class OrderProductService : IOrderProductService
+    public class OrderProductService : BaseEntity,IOrderProductService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGenericRepository<Orders> _orderRepository;
+
         public OrderProductService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _orderRepository= _unitOfWork.GetRepository<Orders>();
+            _orderRepository = _unitOfWork.GetRepository<Orders>();
         }
-        public Task DeleteAsync(object id)
-        {
-            throw new NotImplementedException();
-        }
-
         //R get all the order from DB
         public async Task<IList<Orders>> GetAllAsync()
         {
@@ -35,22 +34,39 @@ namespace XuongMay.Services.Service
         //R get order with a specific id
         public async Task<Orders?> GetByIdAsync(string id)
         {
-           return await _orderRepository.GetByIdAsync(id);
+            return await _orderRepository.GetByIdAsync(id);
         }
-
-        public Task InsertAsync(Orders obj)
+        //Create order
+        public async Task CreateOrder(OrderModelView order)
         {
-            throw new NotImplementedException();
+            Orders _order = new Orders
+            {                
+                ProductId = order.ProductId,
+                OrdersCode = order.OrdersCode,
+                Quantity = order.Quantity,
+                TotalPrice = order.TotalPrice,
+            };
+            await _orderRepository.InsertAsync(_order);
+            await _orderRepository.SaveAsync();
         }
-
-        public void InsertRange(IList<Orders> obj)
+        public async Task UpdateAsync(string id,OrderModelView order)
         {
-            throw new NotImplementedException();
+            Orders _order = await _orderRepository.GetByIdAsync(id);
+            if(_order != null) 
+            {
+                await _orderRepository.UpdateAsync(_order);                
+                _order.ProductId = order.ProductId;
+                _order.OrdersCode = order.OrdersCode;
+                _order.Quantity = order.Quantity;
+                _order.TotalPrice = order.TotalPrice;
+                await _orderRepository.SaveAsync();
+            }                        
         }
-
-        public Task UpdateAsync(Orders obj)
+        //delete an order with specific id
+        public async Task DeleteAsync(string id)
         {
-            throw new NotImplementedException();
+            await _orderRepository.DeleteAsync(id);
+            await _orderRepository.SaveAsync();
         }
     }
 }
