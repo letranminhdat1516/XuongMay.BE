@@ -13,6 +13,7 @@ namespace XuongMayBE.API.Controllers
     public class ConvenyorController : ControllerBase
     {
         private readonly IConveyorService _conveyorService;
+
         public ConvenyorController(IConveyorService conveyorService)
         {
             _conveyorService = conveyorService;
@@ -28,30 +29,62 @@ namespace XuongMayBE.API.Controllers
 
         [HttpPost()]
         [SwaggerOperation(Summary = "Tạo mới băng chuyền")]
-        public async Task<IActionResult> InsertConveyor([FromBody] ConveyorCreateModel request)
+        public async Task<IActionResult> InsertConveyor([FromBody] ConveyorRequestModel request)
         {
-            Conveyor conveyor = new Conveyor();
-            conveyor.ConveyorName = request.ConveyorName;
-            conveyor.ConveyorCode = request.ConveyorCode;
-            conveyor.ConveyorNumber = request.ConveyorNumber;
-            await _conveyorService.InsertNewConveyor(conveyor);
-            return Ok(BaseResponse<String>.OkResponse("Tạo mới băng chuyền thành công"));
+            try
+            {
+                Conveyor conveyor = new Conveyor();
+                conveyor.ConveyorName = request.ConveyorName;
+                conveyor.ConveyorCode = request.ConveyorCode;
+                conveyor.ConveyorNumber = request.ConveyorNumber;
+                await _conveyorService.InsertNewConveyor(conveyor);
+                var response = BaseResponse<string>.OkResponse("Tạo mới băng chuyền thành công");
+                return Ok(response);
+            }
+            catch (BaseException.ErrorException ex)
+            {
+                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
+                return BadRequest(response);
+            }
+
         }
 
-        [HttpPut()]
+        [HttpPut("{id}")]
         [SwaggerOperation(Summary = "Cập nhật thông tin băng chuyền")]
-        public async Task<IActionResult> UpdateConveyor([FromBody] Conveyor request)
+        public async Task<IActionResult> UpdateConveyor(string id, [FromBody] ConveyorRequestModel request)
         {
-            await _conveyorService.UpdateConveyor(request);
-            return Ok(BaseResponse<String>.OkResponse("Cập nhật băng chuyền thành công"));
+            try
+            {
+                await _conveyorService.UpdateConveyor(id, request);
+                return Ok(BaseResponse<string>.OkResponse("Cập nhật băng chuyền thành công"));
+            }
+            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
+            {
+                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+            catch (BaseException.BadRequestException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
         }
 
         [HttpDelete("{id}")]
-        [SwaggerOperation(Summary = "Xóa thông tin băng chuyền băng chuyền")]
+        [SwaggerOperation(Summary = "Xóa thông tin băng chuyền")]
         public async Task<IActionResult> DeleteConveyor(string id)
         {
-            await _conveyorService.DeleteConveyor(id);
-            return Ok(BaseResponse<String>.OkResponse("Xóa băng chuyền thành công"));
+            try
+            {
+                await _conveyorService.DeleteConveyor(id, "KietPHG");
+                return Ok(BaseResponse<string>.OkResponse("Xóa băng chuyền thành công"));
+            }
+            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
+            {
+                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+            catch (BaseException.BadRequestException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
         }
     }
 }
