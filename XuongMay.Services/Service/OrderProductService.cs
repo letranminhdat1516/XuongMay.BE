@@ -1,21 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XuongMay.Contract.Repositories.Entity;
+﻿using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
-using XuongMay.Repositories.UOW;
 using XuongMay.ModelViews.OrderModelViews;
+using XuongMay.Core.Utils;
 using XuongMay.Core.Base;
-using XuongMay.Repositories.Context;
+
 
 namespace XuongMay.Services.Service
 {
-    public class OrderProductService : BaseEntity,IOrderProductService
+    public class OrderProductService : IOrderProductService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGenericRepository<Orders> _orderRepository;
@@ -25,18 +19,20 @@ namespace XuongMay.Services.Service
             _unitOfWork = unitOfWork;
             _orderRepository = _unitOfWork.GetRepository<Orders>();
         }
-        //R get all the order from DB
-        public async Task<IList<Orders>> GetAllAsync()
+        #region
+        public Task<BasePaginatedList<Orders>> GetAllAsync(int index, int pageSize)
         {
-            IList<Orders> orderList = await _unitOfWork.GetRepository<Orders>().GetAllAsync();
-            return orderList;
+            var orderList = _orderRepository.Entities.Where(order => !order.IsDelete);
+            return _orderRepository.GetPagging(orderList, index, pageSize);
         }
-        //R get order with a specific id
+        #endregion
+        #region Get an order by Id
         public async Task<Orders?> GetByIdAsync(string id)
         {
             return await _orderRepository.GetByIdAsync(id);
         }
-        //Create order
+        #endregion
+        #region Create order
         public async Task CreateOrder(OrderModelView order)
         {
             Orders _order = new Orders
@@ -45,13 +41,18 @@ namespace XuongMay.Services.Service
                 OrdersCode = order.OrdersCode,
                 Quantity = order.Quantity,
                 TotalPrice = order.TotalPrice,
+                CreatedBy = order.CreatedBy,
+                CreatedTime=CoreHelper.SystemTimeNow
             };
             await _orderRepository.InsertAsync(_order);
             await _orderRepository.SaveAsync();
         }
-        public async Task UpdateAsync(string id,OrderModelView order)
+        #endregion
+
+        #region Update order
+        public async Task UpdateAsync(string orderId,OrderModelView order)
         {
-            Orders _order = await _orderRepository.GetByIdAsync(id);
+            Orders _order = await _orderRepository.GetByIdAsync(orderId);
             if(_order != null) 
             {
                 await _orderRepository.UpdateAsync(_order);                
@@ -59,14 +60,33 @@ namespace XuongMay.Services.Service
                 _order.OrdersCode = order.OrdersCode;
                 _order.Quantity = order.Quantity;
                 _order.TotalPrice = order.TotalPrice;
+                _order.LastUpdatedBy=order.LastUpdatedBy;
                 await _orderRepository.SaveAsync();
-            }                        
+            }
+            else
+            {
+                throw new BaseException.ErrorException(404, "Not found", "Order is not exited");
+            }
         }
-        //delete an order with specific id
-        public async Task DeleteAsync(string id)
+        #endregion
+
+        #region Delete order
+        public async Task DeleteAsync(string id, string name)
         {
-            await _orderRepository.DeleteAsync(id);
-            await _orderRepository.SaveAsync();
+            Orders _order = await _orderRepository.GetByIdAsync(id);
+            if (_order != null)
+            {
+                await _orderRepository.UpdateAsync(_order);
+                _order.IsDelete = true;
+                _order.DeletedBy = name;
+                _order.DeletedTime = CoreHelper.SystemTimeNow;
+                await _orderRepository.SaveAsync();
+            }
+            else
+            {
+                throw new BaseException.ErrorException(404, "Not found", "Order is not exited");
+            }
         }
+        #endregion
     }
 }
