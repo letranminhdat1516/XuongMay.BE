@@ -28,18 +28,18 @@ namespace XuongMayBE.API.Controllers
             BasePaginatedList<Category> categories = await _categoryService.GetAllCategoryPaging(index, pageSize);
             if (categories == null)
             {
-                return NotFound(BaseResponse<string>.NotFoundResponse("List Category empty !!!"));
+                return NotFound(BaseResponse<string>.NotFoundResponse("List Category Empty !!!"));
             }
             return Ok(BaseResponse<BasePaginatedList<Category>>.OkResponse(categories));
         }
 
         //api get category with filter
         [HttpGet("get-category-with-filter")]
-        public async Task<IActionResult> GetCategoryWithFilter(string keyword = "", int index = 1, int pageSize = 9)
+        public async Task<IActionResult> GetCategoryWithFilter(string keyWord = "", int index = 1, int pageSize = 9)
         {
             try
             {
-                BasePaginatedList<Category> categories = await _categoryService.GetCategoryByFilter(keyword, index, pageSize);
+                BasePaginatedList<Category> categories = await _categoryService.GetCategoryByFilter(keyWord, index, pageSize);
                 if (categories == null)
                 {
                     return NotFound(BaseResponse<string>.NotFoundResponse("Not found category"));

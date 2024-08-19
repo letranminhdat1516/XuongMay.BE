@@ -31,6 +31,7 @@ namespace XuongMay.Services.Service
                 productsTemp.ProductName = products.ProductName;
                 productsTemp.ProductDescription = products.ProductDescription;
                 productsTemp.ProductPrice = products.ProductPrice;
+                productsTemp.CategoryId = products.CategoryId;
                 productsTemp.CreatedTime = CoreHelper.SystemTimeNow;
                 productsTemp.LastUpdatedTime = CoreHelper.SystemTimeNow;
                 await _unitOfWork.GetRepository<Products>().InsertAsync(productsTemp);
