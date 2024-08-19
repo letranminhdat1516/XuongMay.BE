@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using System.Net;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
@@ -30,8 +29,7 @@ namespace XuongMayBE.API.Controllers
         public async Task<IActionResult> GetAllOrderTask(int index = 1, int pageSize = 5)
         {
             var orderTasks = await _orderTaskService.GetAllOrderTask(index, pageSize);
-            var response = BaseResponse<BasePaginatedList<OrderTask>>.OkResponse(orderTasks);
-            return Ok(response);
+            return Ok(BaseResponse<BasePaginatedList<OrderTask>>.OkResponse(orderTasks));
         }
         #endregion
 
@@ -55,18 +53,11 @@ namespace XuongMayBE.API.Controllers
             {
                 request.CreateBy = "KietPHG";
                 await _orderTaskService.InsertOrderTask(request);
-                var response = BaseResponse<string>.OkResponse("Tạo mới nhiệm vụ thành công");
-                return Ok(response);
+                return Ok(BaseResponse<string>.OkResponse("Tạo mới nhiệm vụ thành công"));
             }
-            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
+            catch (BaseException.ErrorException ex)
             {
-                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
-                return NotFound(response);
-            }
-            catch (BaseException.BadRequestException ex)
-            {
-                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
-                return BadRequest(response);
+                return NotFound(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion
@@ -81,13 +72,11 @@ namespace XuongMayBE.API.Controllers
             {
                 request.UpdateBy = "KietPHG";
                 await _orderTaskService.UpdateOrderTask(request);
-                var response = BaseResponse<string>.OkResponse("Cập nhật nhiệm vụ thành công");
-                return Ok(response);
+                return Ok(BaseResponse<string>.OkResponse("Cập nhật nhiệm vụ thành công"));
             }
             catch (BaseException.ErrorException ex)
             {
-                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
-                return BadRequest(response);
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion
@@ -105,13 +94,11 @@ namespace XuongMayBE.API.Controllers
 
                 await _orderTaskService.UpdateOrderTaskStatus(orderTaskUpdate);
 
-                var response = BaseResponse<string>.OkResponse("Cập nhật trạng thái thành công");
-                return Ok(response);
+                return Ok(BaseResponse<string>.OkResponse("Cập nhật trạng thái thành công"));
             }
             catch (BaseException.ErrorException ex)
             {
-                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
-                return BadRequest(response);
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion
@@ -129,13 +116,11 @@ namespace XuongMayBE.API.Controllers
 
                 await _orderTaskService.UpdateOrderTaskStatus(orderTaskUpdate);
 
-                var response = BaseResponse<string>.OkResponse("Cập nhật trạng thái thành công");
-                return Ok(response);
+                return Ok(BaseResponse<string>.OkResponse("Cập nhật trạng thái thành công"));
             }
             catch (BaseException.ErrorException ex)
             {
-                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
-                return BadRequest(response);
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion
@@ -190,13 +175,11 @@ namespace XuongMayBE.API.Controllers
             try
             {
                 await _orderTaskService.DeleteOrderTask(id, "KietPHG");
-                var response = BaseResponse<string>.OkResponse("Xóa vụ thành công");
-                return Ok(response);
+                return Ok(BaseResponse<string>.OkResponse("Xóa vụ thành công"));
             }
             catch (BaseException.ErrorException ex)
             {
-                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
-                return BadRequest(response);
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion
