@@ -13,10 +13,14 @@ namespace XuongMay.Core.Constants
         [CustomName("Unauthorized")]
         Unauthorized = 401,
 
-        [CustomName("Internal Server Error")]
-        ServerError = 500,
+        [CustomName("Forbidden")]
+        Forbidden = 403,
 
         [CustomName("Not Found")]
-        NotFound = 404
+        NotFound = 404,
+
+        [CustomName("Internal Server Error")]
+        ServerError = 500
+
     }
 }

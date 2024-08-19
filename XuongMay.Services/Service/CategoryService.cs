@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XuongMay.Contract.Repositories.Entity;
+﻿using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
@@ -71,10 +66,14 @@ namespace XuongMay.Services.Service
         //remove category by id
         public async Task DeleteCategoryById(string id)
         {
-            Category categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
+            Category? categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
             if (categoryTemp == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");
+            }
+            if (categoryTemp.IsDelete)
+            {
+                throw new BaseException.BadRequestException("Bad Request", "Cannot delete active categories");
             }
             await _unitOfWork.GetRepository<Category>().DeleteAsync(categoryTemp.Id);
             await _unitOfWork.GetRepository<Category>().SaveAsync();
@@ -83,7 +82,7 @@ namespace XuongMay.Services.Service
         //delete category by way update isDelete
         public async Task DeleteCategoryByUpdateStatus(string id)
         {
-            Category categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
+            Category? categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
             if (categoryTemp == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");
@@ -102,7 +101,7 @@ namespace XuongMay.Services.Service
         public async Task UpdateCategory(string id, CategoryModel category)
         {
 
-            Category categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
+            Category? categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
             if (categoryTemp == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");

@@ -10,6 +10,8 @@ using XuongMay.Repositories.Context;
 using XuongMay.Repositories.Entity;
 using XuongMay.Services;
 using XuongMay.Services.Service;
+using XuongMay.Core.Base;
+using Newtonsoft.Json;
 
 namespace XuongMayBE.API
 {
@@ -85,6 +87,14 @@ namespace XuongMayBE.API
         {
             var key = Encoding.ASCII.GetBytes(configuration["Jwt:Key"]);
 
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AuthorizePolicy", policy =>
+                {
+                    policy.RequireRole("ConveyorManager");
+                });
+            });
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -92,6 +102,24 @@ namespace XuongMayBE.API
             })
             .AddJwtBearer(options =>
             {
+                options.Events = new JwtBearerEvents
+                {
+                    OnChallenge = context =>
+                    {
+                        context.HandleResponse();
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.ContentType = "application/json";
+                        var result = BaseResponse<string>.UnauthorizeResponse("Yêu cầu đăng nhập trước khi thực hiện");
+                        return context.Response.WriteAsync(JsonConvert.SerializeObject(result));
+                    },
+                    OnForbidden = context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        context.Response.ContentType = "application/json";
+                        var result = BaseResponse<string>.ForbiddenResponse("Vai trò của bạn không thể truy cập vào tài nguyên này");
+                        return context.Response.WriteAsync(JsonConvert.SerializeObject(result));
+                    }
+                };
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,

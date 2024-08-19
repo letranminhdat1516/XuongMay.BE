@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
@@ -23,16 +25,18 @@ namespace XuongMayBE.API.Controllers
         #region Lấy danh sách các nhiệm vụ
         [HttpGet()]
         [SwaggerOperation(Summary = "Lấy danh sách nhiệm vụ có phân trang")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> GetAllOrderTask(int index = 1, int pageSize = 5)
         {
             var orderTasks = await _orderTaskService.GetAllOrderTask(index, pageSize);
-            var response = BaseResponse<BasePaginatedList<OrderTask>>.OkResponse(orderTasks);
-            return Ok(response);
+            return Ok(BaseResponse<BasePaginatedList<OrderTask>>.OkResponse(orderTasks));
         }
         #endregion
 
         #region Lấy danh sách nhiệm vụ theo filter
         [HttpGet("filter")]
+        [SwaggerOperation(Summary = "Lấy danh sách nhiệm vụ theo filter")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> GetAllOrderTaskByFilter(string keyword = "", int index = 1, int pageSize = 10)
         {
             return Ok(await _orderTaskService.GetAllOrderTaskByFiler(keyword, index, pageSize));
@@ -42,24 +46,18 @@ namespace XuongMayBE.API.Controllers
         #region Thêm mới nhiệm vụ cho băng chuyền
         [HttpPost()]
         [SwaggerOperation(Summary = "Thêm mới nhiệm vụ cho băng chuyền")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> InsertTask(OrderTaskRequestModel request)
         {
             try
             {
                 request.CreateBy = "KietPHG";
                 await _orderTaskService.InsertOrderTask(request);
-                var response = BaseResponse<string>.OkResponse("Tạo mới nhiệm vụ thành công");
-                return Ok(response);
+                return Ok(BaseResponse<string>.OkResponse("Tạo mới nhiệm vụ thành công"));
             }
-            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
+            catch (BaseException.ErrorException ex)
             {
-                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
-                return NotFound(response);
-            }
-            catch (BaseException.BadRequestException ex)
-            {
-                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
-                return BadRequest(response);
+                return NotFound(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion
@@ -67,26 +65,26 @@ namespace XuongMayBE.API.Controllers
         #region Cập nhật nhiệm vụ của băng chuyền
         [HttpPut()]
         [SwaggerOperation(Summary = "Cập nhật nhiệm vụ của băng chuyền")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> UpdateTask([FromBody] OrderTaskUpdateModel request)
         {
             try
             {
                 request.UpdateBy = "KietPHG";
                 await _orderTaskService.UpdateOrderTask(request);
-                var response = BaseResponse<string>.OkResponse("Cập nhật nhiệm vụ thành công");
-                return Ok(response);
+                return Ok(BaseResponse<string>.OkResponse("Cập nhật nhiệm vụ thành công"));
             }
             catch (BaseException.ErrorException ex)
             {
-                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
-                return BadRequest(response);
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion
 
         #region Cập nhật trạng thái nhiệm vụ hoàn thành
-        [HttpPut("TaskComplete/{id}")]
+        [HttpPut("{id}/TaskComplete")]
         [SwaggerOperation(Summary = "Cập nhật nhiệm vụ hoàn thành")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> UpdateTaskComplete(string id)
         {
             try
@@ -96,20 +94,19 @@ namespace XuongMayBE.API.Controllers
 
                 await _orderTaskService.UpdateOrderTaskStatus(orderTaskUpdate);
 
-                var response = BaseResponse<string>.OkResponse("Cập nhật trạng thái thành công");
-                return Ok(response);
+                return Ok(BaseResponse<string>.OkResponse("Cập nhật trạng thái thành công"));
             }
             catch (BaseException.ErrorException ex)
             {
-                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
-                return BadRequest(response);
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion
 
         #region Cập nhật trạng thái hủy nhiệm vụ
-        [HttpPut("TaskStop/{id}")]
+        [HttpPut("{id}/TaskCancel")]
         [SwaggerOperation(Summary = "Cập nhật hủy nhiệm vụ")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> UpdateTaskStop(string id)
         {
             try
@@ -119,20 +116,19 @@ namespace XuongMayBE.API.Controllers
 
                 await _orderTaskService.UpdateOrderTaskStatus(orderTaskUpdate);
 
-                var response = BaseResponse<string>.OkResponse("Cập nhật trạng thái thành công");
-                return Ok(response);
+                return Ok(BaseResponse<string>.OkResponse("Cập nhật trạng thái thành công"));
             }
             catch (BaseException.ErrorException ex)
             {
-                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
-                return BadRequest(response);
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion
 
         #region Cập nhật số lượng hoàn thành
-        [HttpPut("CompleteQuantity/{id}")]
+        [HttpPut("{id}/CompleteQuantity")]
         [SwaggerOperation(Summary = "Cập nhật số lượng đơn hàng hoàn thành")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> UpdateCompleteQuantity(string id, int quantity)
         {
             try
@@ -173,18 +169,17 @@ namespace XuongMayBE.API.Controllers
         #region Xóa nhiệm vụ của băng chuyền
         [HttpDelete("{id}")]
         [SwaggerOperation(Summary = "Xóa nhiệm vụ của băng chuyền")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> DeleteTask(string id)
         {
             try
             {
                 await _orderTaskService.DeleteOrderTask(id, "KietPHG");
-                var response = BaseResponse<string>.OkResponse("Xóa vụ thành công");
-                return Ok(response);
+                return Ok(BaseResponse<string>.OkResponse("Xóa vụ thành công"));
             }
             catch (BaseException.ErrorException ex)
             {
-                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
-                return BadRequest(response);
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion
