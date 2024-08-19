@@ -11,6 +11,8 @@ namespace XuongMay.ModelViews.OrderModelViews
         public string? ProductId {  get; set; }
         public string? OrdersCode {  get; set; }
         public int Quantity {  get; set; }
+        public string CreatedBy {  get; set; }
+        public string LastUpdatedBy { get; set; }
         public Decimal TotalPrice { get; set; }
     }
 }

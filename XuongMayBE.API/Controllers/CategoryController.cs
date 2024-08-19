@@ -28,7 +28,7 @@ namespace XuongMayBE.API.Controllers
             BasePaginatedList<Category> categories = await _categoryService.GetAllCategoryPaging(index, pageSize);
             if (categories == null)
             {
-                return BadRequest("List Category empty !!!");
+                return NotFound(BaseResponse<string>.NotFoundResponse("List Category empty !!!"));
             }
             return Ok(BaseResponse<BasePaginatedList<Category>>.OkResponse(categories));
         }
@@ -42,7 +42,7 @@ namespace XuongMayBE.API.Controllers
                 BasePaginatedList<Category> categories = await _categoryService.GetCategoryByFilter(keyword, index, pageSize);
                 if (categories == null)
                 {
-                    return BadRequest("List Category empty !!!");
+                    return NotFound(BaseResponse<string>.NotFoundResponse("Not found category"));
                 }
                 return Ok(BaseResponse<BasePaginatedList<Category>>.OkResponse(categories));
             }
@@ -59,11 +59,19 @@ namespace XuongMayBE.API.Controllers
             try
             {
                 Category category = await _categoryService.GetCategoryById(id);
+                if (category == null)
+                {
+                    return NotFound(BaseResponse<string>.NotFoundResponse("Not found category"));
+                }
                 return Ok(BaseResponse<Category>.OkResponse(category));
             }
-            catch (BaseException.ErrorException ex)
+            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
             {
-                return NotFound(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+            catch (BaseException.BadRequestException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
 
@@ -74,7 +82,7 @@ namespace XuongMayBE.API.Controllers
             try
             {
                 await _categoryService.CreateCategory(category);
-                var response = BaseResponse<string>.OkResponse("TCategory inserted successfully.");
+                var response = BaseResponse<string>.OkResponse("Category inserted successfully.");
                 return Ok(response);
             }
             catch (BaseException.ErrorException ex)

@@ -3,6 +3,7 @@ using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
 using XuongMay.Core.Base;
+using XuongMay.Core.Utils;
 using XuongMay.ModelViews.CategoryModelViews;
 
 namespace XuongMay.Services.Service
@@ -49,8 +50,8 @@ namespace XuongMay.Services.Service
                 Category categoryTemp = new Category();
                 categoryTemp.CategoryName = category.CategoryName;
                 categoryTemp.CategoryDescription = category.CategoryDescription;
-                categoryTemp.CreatedTime = DateTimeOffset.UtcNow;
-                categoryTemp.LastUpdatedTime = DateTimeOffset.UtcNow;
+                categoryTemp.CreatedTime = CoreHelper.SystemTimeNow;
+                categoryTemp.LastUpdatedTime = CoreHelper.SystemTimeNow;
                 await _unitOfWork.GetRepository<Category>().InsertAsync(categoryTemp);
                 await _unitOfWork.GetRepository<Category>().SaveAsync();
                 return true;
@@ -78,7 +79,7 @@ namespace XuongMay.Services.Service
             await _unitOfWork.GetRepository<Category>().SaveAsync();
         }
 
-        //delete category by way update isWorking
+        //delete category by way update isDelete
         public async Task DeleteCategoryByUpdateStatus(string id)
         {
             Category? categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
@@ -91,6 +92,7 @@ namespace XuongMay.Services.Service
                 throw new BaseException.BadRequestException("Bad Request", "Cannot delete active categories");
             }
             categoryTemp.IsDelete = true;
+            categoryTemp.DeletedTime = CoreHelper.SystemTimeNow;
             await _unitOfWork.GetRepository<Category>().UpdateAsync(categoryTemp);
             await _unitOfWork.GetRepository<Category>().SaveAsync();
         }
@@ -106,7 +108,7 @@ namespace XuongMay.Services.Service
             }
             categoryTemp.CategoryName = category.CategoryName;
             categoryTemp.CategoryDescription = category.CategoryDescription;
-            categoryTemp.LastUpdatedTime = DateTimeOffset.UtcNow;
+            categoryTemp.LastUpdatedTime = CoreHelper.SystemTimeNow;
             await _unitOfWork.GetRepository<Category>().UpdateAsync(categoryTemp);
             await _unitOfWork.GetRepository<Category>().SaveAsync();
 
