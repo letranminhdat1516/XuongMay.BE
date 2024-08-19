@@ -1,4 +1,6 @@
-﻿using XuongMay.ModelViews.AuthModelViews;
+﻿using System.Security.Claims;
+using XuongMay.Core;
+using XuongMay.ModelViews.AuthModelViews;
 using XuongMay.ModelViews.UserModelViews;
 
 namespace XuongMay.Contract.Services.Interface
@@ -6,23 +8,33 @@ namespace XuongMay.Contract.Services.Interface
     public interface IUserService
     {
         /// <summary>
-        /// Lấy tất cả người dùng trong hệ thống.
+        /// Lấy tất cả người dùng trong hệ thống theo Page size.
         /// </summary>
-        Task<IList<UserResponseModel>> GetAll();
+        Task<BasePaginatedList<UserResponseModel>> GetAllAsync(int pageIndex, int pageSize);
+
+        /// <summary>
+        /// Lấy chi tiết người dùng theo ID.
+        /// </summary>
+        Task<UserResponseModel?> GetByIdAsync(string id);
 
         /// <summary>
         /// Đăng ký một người dùng mới.
         /// </summary>
-        /// <param name="model">Mô hình chứa thông tin đăng ký.</param>
-        /// <returns>Chuỗi kết quả nếu có lỗi, null nếu thành công.</returns>
-        Task<string?> RegisterAsync(RegisterModelView model);
+        Task<string?> RegisterAsync(RegisterModelView model, ClaimsPrincipal userClaims);
 
         /// <summary>
         /// Đăng nhập người dùng và trả về JWT token.
         /// </summary>
-        /// <param name="model">Mô hình chứa thông tin đăng nhập.</param>
-        /// <param name="token">JWT token trả về nếu đăng nhập thành công.</param>
-        /// <returns>Chuỗi kết quả nếu có lỗi, null nếu thành công.</returns>
         Task<string?> LoginAsync(LoginModelView model);
+
+        /// <summary>
+        /// Cập nhật thông tin người dùng.
+        /// </summary>
+        Task<string?> UpdateUserAsync(string id, UserUpdateModel updateModel, ClaimsPrincipal userClaims);
+
+        /// <summary>
+        /// Xóa người dùng (chuyển trạng thái IsDelete).
+        /// </summary>
+        Task<string?> DeleteUserAsync(string id, ClaimsPrincipal userClaims);
     }
 }
