@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using XuongMay.Core.Base;
 
@@ -12,7 +13,8 @@ namespace XuongMay.Contract.Repositories.Entity
         [Column(TypeName = "decimal(18,2)")]
         public decimal ProductPrice { get; set; }
         public string? CategoryId { get; set; }
-
+        [DefaultValue(false)]
+        public bool IsWorking { get; set; } = false;
         // Navigation property
         [ForeignKey("CategoryId")]
         public virtual Category? Category { get; set; }

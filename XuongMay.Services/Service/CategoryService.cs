@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.Core;
+using XuongMay.Core.Base;
 using XuongMay.ModelViews.CategoryModelViews;
 
 namespace XuongMay.Services.Service
@@ -15,16 +17,25 @@ namespace XuongMay.Services.Service
     {
         //implement method of class ICategory
         private readonly IUnitOfWork _unitOfWork;
-        
+
         public CategoryService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
-        //get all category
-        public async Task<IList<Category>> GetAll()
+        //get all category with paging
+        public Task<BasePaginatedList<Category>> GetAllCategoryPaging(int index, int pagSize)
         {
-            IList<Category> categories = await _unitOfWork.GetRepository<Category>().GetAllAsync();
+            var categoriesTemp = _unitOfWork.GetRepository<Category>().Entities.Where(ca => !ca.IsWorking);
+            var categories = _unitOfWork.GetRepository<Category>().GetPagging(categoriesTemp, index, pagSize);
+            return categories;
+        }
+
+        //get category with filter
+        public Task<BasePaginatedList<Category>> GetCategoryByFilter(string keyWord, int index, int pageSize)
+        {
+            var categoriesTemp = _unitOfWork.GetRepository<Category>().Entities.Where(ca => !ca.IsWorking && (ca.CategoryName.Contains(keyWord) || keyWord == string.Empty));
+            var categories = _unitOfWork.GetRepository<Category>().GetPagging(categoriesTemp, index, pageSize);
             return categories;
         }
 
@@ -56,43 +67,53 @@ namespace XuongMay.Services.Service
 
         }
 
-        //remove category
-        public async Task<bool> DeleteCategoryById(string id)
+        //remove category by id
+        public async Task DeleteCategoryById(string id)
         {
-            try
+            Category categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
+            if (categoryTemp != null)
             {
-                await _unitOfWork.GetRepository<Category>().DeleteAsync(id);
-                await _unitOfWork.GetRepository<Category>().SaveAsync();
-                return true;
+                throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");
             }
-            catch
+            if (categoryTemp.IsWorking)
             {
-                return false;
+                throw new BaseException.BadRequestException("Bad Request", "Cannot delete active categories");
             }
+            await _unitOfWork.GetRepository<Category>().DeleteAsync(categoryTemp.Id);
+            await _unitOfWork.GetRepository<Category>().SaveAsync();
+        }
 
+        //delete category by way update isWorking
+        public async Task DeleteCategoryByUpdateStatus(string id)
+        {
+            Category categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
+            if (categoryTemp != null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");
+            }
+            if (categoryTemp.IsWorking)
+            {
+                throw new BaseException.BadRequestException("Bad Request", "Cannot delete active categories");
+            }
+            categoryTemp.IsWorking = true;
+            await _unitOfWork.GetRepository<Category>().UpdateAsync(categoryTemp);
+            await _unitOfWork.GetRepository<Category>().SaveAsync();
         }
 
         //update catogory
-        public async Task<bool> UpdateCategory(string id, CategoryModel category)
+        public async Task UpdateCategory(string id, CategoryModel category)
         {
-            try
-            {
 
-                Category categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
-                if(categoryTemp == null){
-                    return false;
-                }
-                categoryTemp.CategoryName = category.CategoryName;
-                categoryTemp.CategoryDescription = category.CategoryDescription;
-                categoryTemp.LastUpdatedTime = DateTimeOffset.UtcNow;
-                await _unitOfWork.GetRepository<Category>().UpdateAsync(categoryTemp);
-                await _unitOfWork.GetRepository<Category>().SaveAsync();
-                return true;
-            }
-            catch
+            Category categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
+            if (categoryTemp == null)
             {
-                return false;
+                throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");
             }
+            categoryTemp.CategoryName = category.CategoryName;
+            categoryTemp.CategoryDescription = category.CategoryDescription;
+            categoryTemp.LastUpdatedTime = DateTimeOffset.UtcNow;
+            await _unitOfWork.GetRepository<Category>().UpdateAsync(categoryTemp);
+            await _unitOfWork.GetRepository<Category>().SaveAsync();
 
         }
     }

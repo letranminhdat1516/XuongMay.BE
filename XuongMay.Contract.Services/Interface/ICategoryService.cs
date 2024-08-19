@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using XuongMay.Contract.Repositories.Entity;
+using XuongMay.Core;
 using XuongMay.ModelViews.CategoryModelViews;
 
 namespace XuongMay.Contract.Services.Interface
@@ -11,10 +12,19 @@ namespace XuongMay.Contract.Services.Interface
     public interface ICategoryService
     {
         // interface CRUD of category
-        Task<IList<Category>> GetAll();
+        //get all category with paging
+        Task<BasePaginatedList<Category>> GetAllCategoryPaging(int index, int pagSize);
+        //get category with filter
+        Task<BasePaginatedList<Category>> GetCategoryByFilter(string keyWord, int index, int pageSize);
+        //get category by id
         Task<Category> GetCategoryById(string id);
+        //create category
         Task<bool> CreateCategory(CategoryModel category);
-        Task<bool> UpdateCategory(string id, CategoryModel category);
-        Task<bool> DeleteCategoryById(string id);
+        //update category
+        Task UpdateCategory(string id, CategoryModel category);
+        //delete category by way update isWorking
+        Task DeleteCategoryByUpdateStatus(string id);
+        //delete category by id
+        Task DeleteCategoryById(string id);
     }
 }
