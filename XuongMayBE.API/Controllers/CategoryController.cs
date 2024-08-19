@@ -4,6 +4,10 @@ using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core.Base;
 using XuongMay.Services.Service;
+using XuongMay.ModelViews.CategoryModelViews;
+using XuongMay.Core;
+using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
+using Azure.Core;
 
 namespace XuongMayBE.API.Controllers
 {
@@ -19,95 +23,122 @@ namespace XuongMayBE.API.Controllers
 
         //api get all category
         [HttpGet("get-all-category")]
-        public async Task<IActionResult> GetAllCategory()
+        public async Task<IActionResult> GetAllCategory(int index = 1, int pageSize = 9)
         {
-            IList<Category> categories = await _categoryService.GetAll();
+            BasePaginatedList<Category> categories = await _categoryService.GetAllCategoryPaging(index, pageSize);
             if (categories == null)
             {
-                return BadRequest();
+                return BadRequest("List Category empty !!!");
             }
-            return Ok(BaseResponse<IList<Category>>.OkResponse(categories));
+            return Ok(BaseResponse<BasePaginatedList<Category>>.OkResponse(categories));
         }
 
-        //api get categoryby id
-        [HttpGet("get-by-category-id/{id}")]
+        //api get category with filter
+        [HttpGet("get-category-with-filter")]
+        public async Task<IActionResult> GetCategoryWithFilter(string keyword = "", int index = 1, int pageSize = 9)
+        {
+            try
+            {
+                BasePaginatedList<Category> categories = await _categoryService.GetCategoryByFilter(keyword, index, pageSize);
+                if (categories == null)
+                {
+                    return BadRequest("List Category empty !!!");
+                }
+                return Ok(BaseResponse<BasePaginatedList<Category>>.OkResponse(categories));
+            }
+            catch (BaseException.ErrorException ex)
+            {
+                return NotFound(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+        }
+
+        //api get category by id
+        [HttpGet("get-category-by-id/{id}")]
         public async Task<IActionResult> GetCategoryById(string id)
         {
-            Category category = await _categoryService.GetCategoryById(id);
-            if (category == null)
+            try
             {
-                return BadRequest();
+                Category category = await _categoryService.GetCategoryById(id);
+                return Ok(BaseResponse<Category>.OkResponse(category));
             }
-            return Ok(BaseResponse<Category>.OkResponse(category));
+            catch (BaseException.ErrorException ex)
+            {
+                return NotFound(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
         }
 
         //api insert category
         [HttpPost("insert-category")]
-        public async Task<IActionResult> InsertCategory([FromBody] Category category)
+        public async Task<IActionResult> InsertCategory([FromBody] CategoryModel category)
         {
-            if (category == null)
-            {
-                return BadRequest("Category cannot be null.");
-            }
-
             try
             {
-                bool result = await _categoryService.CreateCategory(category);
-                if (result)
-                {
-                    return Ok("Category inserted successfully.");
-                }
-                return BadRequest("Category inserted Fail !!!");
+                await _categoryService.CreateCategory(category);
+                var response = BaseResponse<string>.OkResponse("TCategory inserted successfully.");
+                return Ok(response);
             }
-            catch (Exception ex)
+            catch (BaseException.ErrorException ex)
             {
-                // Log the exception if necessary
-                Console.WriteLine(ex.Message);
-                return StatusCode(500, "Internal server error.");
+                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
+                return BadRequest(response);
             }
         }
 
         //api update category
-        [HttpPut("update-category/{Category}")]
-        public async Task<IActionResult> UpdateCategory(Category category)
+        [HttpPut("update-category/{id}")]
+        public async Task<IActionResult> UpdateCategory(string id, [FromBody] CategoryModel category)
         {
-            if (category == null)
-            {
-                return BadRequest("Category cannot be null");
-            }
             try
             {
-                bool result = await _categoryService.UpdateCategory(category);
-                if (result)
-                {
-                    return Ok("Category update successfully.");
-                }
-                return BadRequest("Category update fail !!!");
+                await _categoryService.UpdateCategory(id, category);
+                return Ok(BaseResponse<string>.OkResponse("Category update successfully."));
             }
-            catch (Exception ex)
+            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
             {
-                Console.WriteLine(ex.Message);
-                return StatusCode(500, "Internal server error.");
+                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+            catch (BaseException.BadRequestException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+
+        }
+
+        //api remove category by way update status
+        [HttpDelete("delete-category-by-update-status")]
+        public async Task<IActionResult> DeleteCategoryByUpdateStatus(string id)
+        {
+            try
+            {
+                await _categoryService.DeleteCategoryByUpdateStatus(id);
+                return Ok(BaseResponse<string>.OkResponse("Category delete successfully."));
+            }
+            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
+            {
+                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+            catch (BaseException.BadRequestException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
 
-        //api remove category
+        //api remove category by id
         [HttpDelete("delete-category/{id}")]
         public async Task<IActionResult> DeleteCategory(string id)
         {
             try
             {
-                bool result = await _categoryService.DeleteCategoryById(id);
-                if (result)
-                {
-                    return Ok("Category delete successfully.");
-                }
-                return BadRequest("Category delete fail !!!");
+                await _categoryService.DeleteCategoryById(id);
+                return Ok(BaseResponse<string>.OkResponse("Category delete successfully."));
             }
-            catch (Exception ex)
+            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
             {
-                Console.WriteLine(ex.Message);
-                return StatusCode(500, "Internal server error.");
+                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+            catch (BaseException.BadRequestException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
     }

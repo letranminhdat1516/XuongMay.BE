@@ -7,14 +7,12 @@ namespace XuongMay.Contract.Services.Interface
     public interface IConveyorService
     {
         // R
-        Task<IList<Conveyor>> GetAllConveyor();
         Task<BasePaginatedList<Conveyor>> GetAllConveyorPaging(int index, int pageSize);
-        Task<Conveyor?> GetOneConveyor(object id);
-
+        Task<BasePaginatedList<Conveyor>> GetConveyorByFilter(string keyword, int index, int pageSize);
 
         // CUD
-        Task InsertNewConveyor(Conveyor obj);
-        Task UpdateConveyor(string id, ConveyorRequestModel obj);
+        Task InsertNewConveyor(ConveyorRequestModel obj);
+        Task UpdateConveyor(ConveyorUpdateModel obj);
         Task DeleteConveyor(object id, string deleteBy);
         Task SaveAsync();
 

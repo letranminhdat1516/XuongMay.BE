@@ -48,7 +48,7 @@ namespace XuongMayBE.API.Controllers
         [HttpPost("new_account")]
         public async Task<IActionResult> Register([FromBody] RegisterModelView model)
         {
-            var result = await _userService.RegisterAsync(model);
+            var result = await _userService.RegisterAsync(model, User);
             if (result != null)
             {
                 return BadRequest(result);
