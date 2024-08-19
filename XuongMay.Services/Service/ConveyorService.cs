@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
@@ -26,20 +27,24 @@ namespace XuongMay.Services.Service
         }
         #endregion
 
-        #region Get all Conveyor with paging
+        #region Get All Conveyor
         public Task<BasePaginatedList<Conveyor>> GetAllConveyorPaging(int index, int pageSize)
         {
-            var conveyors = _conveyorRepository.Entities.Where(con => con.DeletedTime == null);
-            var conveyorsPaging = _conveyorRepository.GetPagging(conveyors, index, pageSize);
-            return conveyorsPaging;
+            var conveyors = _conveyorRepository.Entities.Where(con => !con.IsDelete);
+            return _conveyorRepository.GetPagging(conveyors, index, pageSize);
         }
         #endregion
 
-        #region Get one Conveyor
-        public Task<Conveyor?> GetOneConveyor(object id)
+        #region Get Conveyor By Filter
+        public Task<BasePaginatedList<Conveyor>> GetConveyorByFilter(string keyword, int index, int pageSize)
         {
-            var conveyor = _conveyorRepository.GetById(id);
-            return Task.FromResult(conveyor);
+            var conveyors = _conveyorRepository
+                .Entities
+                .Where(con =>
+                !con.IsDelete
+                && (con.ConveyorName.Contains(keyword) || keyword == string.Empty));
+
+            return _conveyorRepository.GetPagging(conveyors, index, pageSize);
         }
         #endregion
 
@@ -48,8 +53,6 @@ namespace XuongMay.Services.Service
         {
             Conveyor conveyor = new Conveyor();
             conveyor.ConveyorName = obj.ConveyorName;
-            conveyor.ConveyorCode = obj.ConveyorCode;
-            conveyor.ConveyorNumber = obj.ConveyorNumber;
             conveyor.MaxQuantity = obj.MaxQuantity;
             conveyor.CreatedBy = obj.CreateBy;
             await _conveyorRepository.InsertAsync(conveyor);
@@ -71,9 +74,7 @@ namespace XuongMay.Services.Service
                 throw new BaseException.BadRequestException("Bad Request", "Không thể cập nhật! Băng chuyền đang hoạt động");
             }
 
-            conveyor.ConveyorNumber = obj.ConveyorNumber;
             conveyor.ConveyorName = obj.ConveyorName;
-            conveyor.ConveyorCode = obj.ConveyorCode;
             conveyor.MaxQuantity = obj.MaxQuantity;
             conveyor.LastUpdatedTime = CoreHelper.SystemTimeNow;
             conveyor.LastUpdatedBy = obj.UpdateBy;
@@ -98,8 +99,8 @@ namespace XuongMay.Services.Service
 
             conveyor.DeletedTime = CoreHelper.SystemTimeNow;
             conveyor.DeletedBy = deleteBy;
+            conveyor.IsDelete = true;
             await _conveyorRepository.UpdateAsync(conveyor);
-            //await _conveyorRepository.DeleteAsync(id);
             await SaveAsync();
         }
         #endregion

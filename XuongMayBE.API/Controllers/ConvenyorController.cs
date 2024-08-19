@@ -22,11 +22,28 @@ namespace XuongMayBE.API.Controllers
         #region Lấy danh sách các băng chuyền
         [HttpGet()]
         [SwaggerOperation(Summary = "Lấy danh sách các băng chuyền có phân trang")]
-        public async Task<IActionResult> GetConveyorPaging(int index = 1, int pageSize = 5)
+        public async Task<IActionResult> GetConveyorPaging(int index = 1, int pageSize = 10)
         {
             BasePaginatedList<Conveyor> conveyors = await _conveyorService.GetAllConveyorPaging(index, pageSize);
             var response = BaseResponse<BasePaginatedList<Conveyor>>.OkResponse(conveyors);
             return Ok(response);
+        }
+        #endregion
+
+        #region Lấy thông tin băng chuyền theo filter
+        [HttpGet("filter")]
+        [SwaggerOperation(Summary = "Lấy thông tin của băng chuyền theo filter")]
+        public async Task<IActionResult> GetOneConveyor(string keyword = "", int index = 1, int pageSize = 10)
+        {
+            try
+            {
+                var conveyors = await _conveyorService.GetConveyorByFilter(keyword, index, pageSize);
+                return Ok(BaseResponse<BasePaginatedList<Conveyor>>.OkResponse(conveyors));
+            }
+            catch (BaseException.ErrorException ex)
+            {
+                return NotFound(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
         }
         #endregion
 
@@ -52,13 +69,13 @@ namespace XuongMayBE.API.Controllers
         #endregion
 
         #region Cập nhật thông tin băng chuyền
-        [HttpPut("{id}")]
+        [HttpPut()]
         [SwaggerOperation(Summary = "Cập nhật thông tin băng chuyền")]
-        public async Task<IActionResult> UpdateConveyor(string id, [FromBody] ConveyorUpdateModel request)
+        public async Task<IActionResult> UpdateConveyor([FromBody] ConveyorUpdateModel request)
         {
             try
             {
-                request.ConveyorId = id;
+                request.UpdateBy = "KietPHG";
                 await _conveyorService.UpdateConveyor(request);
                 return Ok(BaseResponse<string>.OkResponse("Cập nhật băng chuyền thành công"));
             }

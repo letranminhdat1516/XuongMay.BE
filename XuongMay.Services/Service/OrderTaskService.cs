@@ -29,34 +29,23 @@ namespace XuongMay.Services.Service
         #endregion
 
         #region Get All Order Task
-        public async Task<IList<OrderTask>> GetAllOrderTask()
+        public Task<BasePaginatedList<OrderTask>> GetAllOrderTask(int index, int pageSize)
         {
-            return await _orderTaskRepository.GetAllAsync();
+            var orderTask = _orderTaskRepository.Entities.Where(ord => !ord.IsDelete);
+            return _orderTaskRepository.GetPagging(orderTask, index, pageSize);
         }
 
         #endregion
 
-        #region Get All Order Task With Paging
-        public Task<BasePaginatedList<OrderTask>> GetAllOrderTaskWithPaging(int index, int pageSize)
+        #region Get All Order Task By Filter
+        public async Task<BasePaginatedList<OrderTask>> GetAllOrderTaskByFiler(string keyword, int index, int pageSize)
         {
-            var orderTask = _orderTaskRepository.Entities.Where(ord => ord.DeletedTime == null);
-            var orderTaskPaging = _orderTaskRepository.GetPagging(orderTask, index, pageSize);
-            return orderTaskPaging;
+            var orderTasks = _orderTaskRepository
+                            .Entities
+                            .Where(ord => !ord.IsDelete
+                            && (ord.Status.Contains(keyword) || keyword == string.Empty));
+            return await _orderTaskRepository.GetPagging(orderTasks, index, pageSize);
         }
-
-        #endregion
-
-        #region Get Order Task By Id
-        public async Task<OrderTask?> GetOrderTaskById(object id)
-        {
-            var orderTask = await _orderTaskRepository.GetByIdAsync(id);
-            if (orderTask == null)
-            {
-                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy nhiệm vụ");
-            }
-            return orderTask;
-        }
-
         #endregion
 
         #region Insert Order Task
@@ -96,7 +85,7 @@ namespace XuongMay.Services.Service
         #region Update Order Task
         public async Task UpdateOrderTask(OrderTaskUpdateModel obj)
         {
-            var orderTask = await GetOrderTaskById(obj.OrderTaskId);
+            var orderTask = await _orderTaskRepository.GetByIdAsync(obj.OrderTaskId);
             if (orderTask == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy nhiệm vụ");
@@ -117,6 +106,13 @@ namespace XuongMay.Services.Service
             await ValidateRequestData(conveyor, orderTask);
 
             await _orderTaskRepository.UpdateAsync(orderTask);
+
+            if (!conveyor.IsWorking)
+            {
+                conveyor.IsWorking = true;
+                await _conveyorRepository.UpdateAsync(conveyor);
+            }
+
             await SaveAsync();
         }
         #endregion
@@ -148,10 +144,46 @@ namespace XuongMay.Services.Service
         }
         #endregion
 
+        #region Update Order Task Quantity Complete
+        public async Task UpdateOrderTaskCompleteQuantity(object orderTaskId, int quantity)
+        {
+            var orderTask = await _orderTaskRepository.GetByIdAsync(orderTaskId);
+            if (orderTask == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy nhiệm vụ");
+            }
+
+            var conveyor = await _conveyorRepository.GetByIdAsync(orderTask.ConveyorId);
+
+            if (conveyor == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy băng chuyền");
+            }
+
+            if (quantity > orderTask.Quantity)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", $"Số lượng hoàn thành không lớn hơn số lượng đang thực hiện (Số lượng đang thực hiện: {orderTask.Quantity})");
+            }
+            if (quantity < 1)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Số lượng hoàn thành phải lớn hơn 0");
+            }
+            orderTask.CompleteQuantity = quantity;
+            orderTask.Quantity -= quantity;
+            await _orderTaskRepository.UpdateAsync(orderTask);
+            if (orderTask.Quantity == 0)
+            {
+                conveyor.IsWorking = false;
+                await _conveyorRepository.UpdateAsync(conveyor);
+            }
+            await SaveAsync();
+        }
+        #endregion
+
         #region Delete Order Task
         public async Task DeleteOrderTask(object orderTaskId, string deleteBy)
         {
-            var orderTask = await GetOrderTaskById(orderTaskId);
+            var orderTask = await _orderTaskRepository.GetByIdAsync(orderTaskId);
 
             if (orderTask == null)
             {
@@ -171,6 +203,7 @@ namespace XuongMay.Services.Service
 
             orderTask.DeletedBy = deleteBy;
             orderTask.DeletedTime = CoreHelper.SystemTimeNow;
+            orderTask.IsDelete = true;
             await _orderTaskRepository.UpdateAsync(orderTask);
             await SaveAsync();
         }

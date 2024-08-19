@@ -23,11 +23,19 @@ namespace XuongMayBE.API.Controllers
         #region Lấy danh sách các nhiệm vụ
         [HttpGet()]
         [SwaggerOperation(Summary = "Lấy danh sách nhiệm vụ có phân trang")]
-        public async Task<IActionResult> GetAllTaskWithPaging(int index = 1, int pageSize = 5)
+        public async Task<IActionResult> GetAllOrderTask(int index = 1, int pageSize = 5)
         {
-            var orderTasks = await _orderTaskService.GetAllOrderTaskWithPaging(index, pageSize);
+            var orderTasks = await _orderTaskService.GetAllOrderTask(index, pageSize);
             var response = BaseResponse<BasePaginatedList<OrderTask>>.OkResponse(orderTasks);
             return Ok(response);
+        }
+        #endregion
+
+        #region Lấy danh sách nhiệm vụ theo filter
+        [HttpGet("filter")]
+        public async Task<IActionResult> GetAllOrderTaskByFilter(string keyword = "", int index = 1, int pageSize = 10)
+        {
+            return Ok(await _orderTaskService.GetAllOrderTaskByFiler(keyword, index, pageSize));
         }
         #endregion
 
@@ -118,6 +126,23 @@ namespace XuongMayBE.API.Controllers
             {
                 var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
                 return BadRequest(response);
+            }
+        }
+        #endregion
+
+        #region Cập nhật số lượng hoàn thành
+        [HttpPut("CompleteQuantity/{id}")]
+        [SwaggerOperation(Summary = "Cập nhật số lượng đơn hàng hoàn thành")]
+        public async Task<IActionResult> UpdateCompleteQuantity(string id, int quantity)
+        {
+            try
+            {
+                await _orderTaskService.UpdateOrderTaskCompleteQuantity(id, quantity);
+                return Ok(BaseResponse<string>.OkResponse("Cập nhật thành công"));
+            }
+            catch (BaseException.ErrorException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion

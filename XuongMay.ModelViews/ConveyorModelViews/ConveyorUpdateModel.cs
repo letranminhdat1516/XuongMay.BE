@@ -19,6 +19,6 @@ namespace XuongMay.ModelViews.ConveyorModelViews
         public bool IsWorking { get; private set; } = false;
 
         [JsonIgnore]
-        public required string UpdateBy { get; set; }
+        public string? UpdateBy { get; set; }
     }
 }
