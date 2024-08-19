@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
@@ -22,6 +24,7 @@ namespace XuongMayBE.API.Controllers
         #region Lấy danh sách các băng chuyền
         [HttpGet()]
         [SwaggerOperation(Summary = "Lấy danh sách các băng chuyền có phân trang")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> GetConveyorPaging(int index = 1, int pageSize = 10)
         {
             BasePaginatedList<Conveyor> conveyors = await _conveyorService.GetAllConveyorPaging(index, pageSize);
@@ -32,6 +35,7 @@ namespace XuongMayBE.API.Controllers
         #region Lấy thông tin băng chuyền theo filter
         [HttpGet("filter")]
         [SwaggerOperation(Summary = "Lấy thông tin của băng chuyền theo filter")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> GetOneConveyor(string keyword = "", int index = 1, int pageSize = 10)
         {
             try
@@ -49,6 +53,7 @@ namespace XuongMayBE.API.Controllers
         #region Thêm mới băng chuyền
         [HttpPost()]
         [SwaggerOperation(Summary = "Tạo mới băng chuyền")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> InsertConveyor([FromBody] ConveyorRequestModel request)
         {
             try
@@ -68,6 +73,7 @@ namespace XuongMayBE.API.Controllers
         #region Cập nhật thông tin băng chuyền
         [HttpPut()]
         [SwaggerOperation(Summary = "Cập nhật thông tin băng chuyền")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> UpdateConveyor([FromBody] ConveyorUpdateModel request)
         {
             try
@@ -86,6 +92,7 @@ namespace XuongMayBE.API.Controllers
         #region Xóa thông tin băng chuyền
         [HttpDelete("{id}")]
         [SwaggerOperation(Summary = "Xóa thông tin băng chuyền")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> DeleteConveyor(string id)
         {
             try

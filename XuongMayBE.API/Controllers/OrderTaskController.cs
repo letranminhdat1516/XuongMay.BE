@@ -133,7 +133,13 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                await _orderTaskService.UpdateOrderTaskCompleteQuantity(id, quantity);
+                var completeQuantity = new OrderTaskUpdateCompleteQuantity
+                {
+                    OrderTaskId = id,
+                    Quantity = quantity,
+                    UpdateBy = "KietPHG"
+                };
+                await _orderTaskService.UpdateOrderTaskCompleteQuantity(completeQuantity);
                 return Ok(BaseResponse<string>.OkResponse("Cập nhật thành công"));
             }
             catch (BaseException.ErrorException ex)
