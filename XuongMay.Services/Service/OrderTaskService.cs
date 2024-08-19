@@ -43,7 +43,7 @@ namespace XuongMay.Services.Service
             var orderTasks = _orderTaskRepository
                             .Entities
                             .Where(ord => !ord.IsDelete
-                            && (ord.Status.Contains(keyword) || keyword == string.Empty));
+                            && (ord.Status.Contains(keyword) || string.IsNullOrWhiteSpace(keyword)));
             return await _orderTaskRepository.GetPagging(orderTasks, index, pageSize);
         }
         #endregion
@@ -56,7 +56,7 @@ namespace XuongMay.Services.Service
                 throw new BaseException.BadRequestException("Bad Request", "Vui lòng chọn băng chuyền và đơn hàng");
             }
 
-            var conveyor = _conveyorRepository.GetById(obj.ConveyorId);
+            var conveyor = await _conveyorRepository.GetByIdAsync(obj.ConveyorId);
 
             if (conveyor == null)
             {
@@ -91,7 +91,7 @@ namespace XuongMay.Services.Service
                 throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy nhiệm vụ");
             }
 
-            var conveyor = _conveyorRepository.GetById(orderTask.ConveyorId);
+            var conveyor = await _conveyorRepository.GetByIdAsync(orderTask.ConveyorId);
 
             if (conveyor == null)
             {
@@ -164,10 +164,12 @@ namespace XuongMay.Services.Service
             {
                 throw new BaseException.ErrorException(400, "Bad Request", $"Số lượng hoàn thành không lớn hơn số lượng đang thực hiện (Số lượng đang thực hiện: {orderTask.Quantity})");
             }
+
             if (quantity < 1)
             {
                 throw new BaseException.ErrorException(400, "Bad Request", "Số lượng hoàn thành phải lớn hơn 0");
             }
+
             orderTask.CompleteQuantity = quantity;
             orderTask.Quantity -= quantity;
             await _orderTaskRepository.UpdateAsync(orderTask);

@@ -25,8 +25,7 @@ namespace XuongMayBE.API.Controllers
         public async Task<IActionResult> GetConveyorPaging(int index = 1, int pageSize = 10)
         {
             BasePaginatedList<Conveyor> conveyors = await _conveyorService.GetAllConveyorPaging(index, pageSize);
-            var response = BaseResponse<BasePaginatedList<Conveyor>>.OkResponse(conveyors);
-            return Ok(response);
+            return Ok(BaseResponse<BasePaginatedList<Conveyor>>.OkResponse(conveyors));
         }
         #endregion
 
@@ -56,13 +55,11 @@ namespace XuongMayBE.API.Controllers
             {
                 request.CreateBy = "KietPHG";
                 await _conveyorService.InsertNewConveyor(request);
-                var response = BaseResponse<string>.OkResponse("Tạo mới băng chuyền thành công");
-                return Ok(response);
+                return Ok(BaseResponse<string>.OkResponse("Tạo mới băng chuyền thành công"));
             }
             catch (BaseException.ErrorException ex)
             {
-                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
-                return BadRequest(response);
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
 
         }
@@ -79,13 +76,9 @@ namespace XuongMayBE.API.Controllers
                 await _conveyorService.UpdateConveyor(request);
                 return Ok(BaseResponse<string>.OkResponse("Cập nhật băng chuyền thành công"));
             }
-            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
+            catch (BaseException.ErrorException ex)
             {
-                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
-            }
-            catch (BaseException.BadRequestException ex)
-            {
-                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+                return NotFound(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion
@@ -100,13 +93,9 @@ namespace XuongMayBE.API.Controllers
                 await _conveyorService.DeleteConveyor(id, "KietPHG");
                 return Ok(BaseResponse<string>.OkResponse("Xóa băng chuyền thành công"));
             }
-            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
+            catch (BaseException.ErrorException ex)
             {
-                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
-            }
-            catch (BaseException.BadRequestException ex)
-            {
-                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+                return NotFound(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion

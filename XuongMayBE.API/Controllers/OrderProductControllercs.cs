@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.Core;
 using XuongMay.Core.Base;
 using XuongMay.ModelViews.OrderModelViews;
 
@@ -17,22 +18,27 @@ namespace XuongMayBE.API.Controllers
         {
             _orderProductService = orderProductService;
         }
-        //get all order
+
+        #region Get all the order
         [HttpGet("all-order")]
         [SwaggerOperation(Summary = "Lấy tất cả order")]
-        public async Task<IActionResult> GetAllOrder()
+        public async Task<IActionResult> GetAllOrder(int pageSize, int index = 1)
         {
-            IList<Orders> orders=await _orderProductService.GetAllAsync();
-            return Ok(BaseResponse<IList<Orders>>.OkResponse(orders));
+            BasePaginatedList<Orders> orders=await _orderProductService.GetAllAsync(index,pageSize);            
+            return Ok(BaseResponse<BasePaginatedList<Orders>>.OkResponse(orders));
         }
-        //get a specific order
+        #endregion
+        
+        #region Get a specific order base on ID
         [HttpGet("/{id}")]
         [SwaggerOperation(Summary = "Lấy order dựa theo orderId")]
         public async Task<Orders?> GetOrderById([FromRoute] string id)
         {
             return await _orderProductService.GetByIdAsync(id);            
         }
-        //create a new order
+        #endregion
+        
+        #region Create a new order
         [HttpPost("/orders")]
         [SwaggerOperation(Summary = "Tạo 1 order mới")]
         public async Task<IActionResult> CreateOrder([FromBody] OrderModelView orderModelView)
@@ -48,7 +54,9 @@ namespace XuongMayBE.API.Controllers
                 return Ok(BaseResponse<Orders>.OkResponse("Create fail"));
             }   
         }
-        //change an exited order
+        #endregion
+        
+        #region Change detail of an exting order
         [HttpPut("/update-order/{id}")]
         [SwaggerOperation(Summary = "Chỉnh sửa 1 order dựa theo Id")]
         public async Task<IActionResult> UpdateOrder(string id, OrderModelView orderModelView)
@@ -64,23 +72,25 @@ namespace XuongMayBE.API.Controllers
                 return Ok(BaseResponse<Orders>.OkResponse("U fail"));
             }
         }
-        //delete an order
+        #endregion
+        
+        #region Delete an order(change the IsDelete to true)
         [HttpDelete("/delete/{id}")]
         [SwaggerOperation(Summary = "Xoá 1 order")]
-        public async Task<IActionResult> DeleteOrder(string id)
-        {
-            //Orders deletedOrder = await _orderProductService.GetByIdAsync(id);
-            Task orderDeleted = _orderProductService.DeleteAsync(id);
+        public async Task<IActionResult> DeleteOrder(string id,string deleterName)
+        {            
+            Task orderDeleted = _orderProductService.DeleteAsync(id,deleterName);
             await orderDeleted;
             ;
             if(orderDeleted.IsCompleted == true) 
             {
                 return Ok(BaseResponse<Orders>.OkResponse("Delete successfully!"));
-            }
+            }   
             else 
             {
                 return Ok(BaseResponse<Orders>.OkResponse("Delete fail"));
             }
         }
-    }            
+        #endregion
+    }
 }

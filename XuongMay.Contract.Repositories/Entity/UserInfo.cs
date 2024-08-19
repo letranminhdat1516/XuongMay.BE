@@ -8,5 +8,6 @@ namespace XuongMay.Contract.Repositories.Entity
         public string? BankAccount { get; set; }
         public string? BankAccountName { get; set; }
         public string? Bank { get; set; }
+        public bool IsDelete { get; set; } = false;
     }
 }

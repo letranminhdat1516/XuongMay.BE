@@ -49,5 +49,15 @@ namespace XuongMay.Core.Base
         {
             return new BaseResponse<T>(StatusCodeHelper.NotFound, StatusCodeHelper.NotFound.Name(), mess);
         }
+
+        public static BaseResponse<T> UnauthorizeResponse(string? mess)
+        {
+            return new BaseResponse<T>(StatusCodeHelper.Unauthorized, StatusCodeHelper.Unauthorized.Name(), mess);
+        }
+
+        public static BaseResponse<T> ForbiddenResponse(string? mess)
+        {
+            return new BaseResponse<T>(StatusCodeHelper.Forbidden, StatusCodeHelper.Forbidden.Name(), mess);
+        }
     }
 }
