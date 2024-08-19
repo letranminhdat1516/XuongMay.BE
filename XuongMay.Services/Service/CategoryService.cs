@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XuongMay.Contract.Repositories.Entity;
+﻿using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
@@ -26,7 +21,7 @@ namespace XuongMay.Services.Service
         //get all category with paging
         public Task<BasePaginatedList<Category>> GetAllCategoryPaging(int index, int pagSize)
         {
-            var categoriesTemp = _unitOfWork.GetRepository<Category>().Entities.Where(ca => !ca.IsWorking);
+            var categoriesTemp = _unitOfWork.GetRepository<Category>().Entities.Where(ca => !ca.IsDelete);
             var categories = _unitOfWork.GetRepository<Category>().GetPagging(categoriesTemp, index, pagSize);
             return categories;
         }
@@ -34,7 +29,7 @@ namespace XuongMay.Services.Service
         //get category with filter
         public Task<BasePaginatedList<Category>> GetCategoryByFilter(string keyWord, int index, int pageSize)
         {
-            var categoriesTemp = _unitOfWork.GetRepository<Category>().Entities.Where(ca => !ca.IsWorking && (ca.CategoryName.Contains(keyWord) || keyWord == string.Empty));
+            var categoriesTemp = _unitOfWork.GetRepository<Category>().Entities.Where(ca => !ca.IsDelete && (ca.CategoryName.Contains(keyWord) || keyWord == string.Empty));
             var categories = _unitOfWork.GetRepository<Category>().GetPagging(categoriesTemp, index, pageSize);
             return categories;
         }
@@ -70,12 +65,12 @@ namespace XuongMay.Services.Service
         //remove category by id
         public async Task DeleteCategoryById(string id)
         {
-            Category categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
-            if (categoryTemp != null)
+            Category? categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
+            if (categoryTemp == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");
             }
-            if (categoryTemp.IsWorking)
+            if (categoryTemp.IsDelete)
             {
                 throw new BaseException.BadRequestException("Bad Request", "Cannot delete active categories");
             }
@@ -86,16 +81,16 @@ namespace XuongMay.Services.Service
         //delete category by way update isWorking
         public async Task DeleteCategoryByUpdateStatus(string id)
         {
-            Category categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
-            if (categoryTemp != null)
+            Category? categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
+            if (categoryTemp == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");
             }
-            if (categoryTemp.IsWorking)
+            if (categoryTemp.IsDelete)
             {
                 throw new BaseException.BadRequestException("Bad Request", "Cannot delete active categories");
             }
-            categoryTemp.IsWorking = true;
+            categoryTemp.IsDelete = true;
             await _unitOfWork.GetRepository<Category>().UpdateAsync(categoryTemp);
             await _unitOfWork.GetRepository<Category>().SaveAsync();
         }
@@ -104,7 +99,7 @@ namespace XuongMay.Services.Service
         public async Task UpdateCategory(string id, CategoryModel category)
         {
 
-            Category categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
+            Category? categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
             if (categoryTemp == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");

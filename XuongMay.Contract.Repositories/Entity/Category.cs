@@ -10,7 +10,5 @@ namespace XuongMay.Contract.Repositories.Entity
     {
         public string CategoryName { get; set; } = string.Empty;
         public string CategoryDescription { get; set; } = string.Empty;
-        [DefaultValue(false)]
-        public bool IsWorking { get; set; } = false;
     }
 }

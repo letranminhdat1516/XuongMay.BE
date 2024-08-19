@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Net;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
@@ -23,6 +26,7 @@ namespace XuongMayBE.API.Controllers
         #region Lấy danh sách các nhiệm vụ
         [HttpGet()]
         [SwaggerOperation(Summary = "Lấy danh sách nhiệm vụ có phân trang")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> GetAllOrderTask(int index = 1, int pageSize = 5)
         {
             var orderTasks = await _orderTaskService.GetAllOrderTask(index, pageSize);
@@ -33,6 +37,8 @@ namespace XuongMayBE.API.Controllers
 
         #region Lấy danh sách nhiệm vụ theo filter
         [HttpGet("filter")]
+        [SwaggerOperation(Summary = "Lấy danh sách nhiệm vụ theo filter")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> GetAllOrderTaskByFilter(string keyword = "", int index = 1, int pageSize = 10)
         {
             return Ok(await _orderTaskService.GetAllOrderTaskByFiler(keyword, index, pageSize));
@@ -42,6 +48,7 @@ namespace XuongMayBE.API.Controllers
         #region Thêm mới nhiệm vụ cho băng chuyền
         [HttpPost()]
         [SwaggerOperation(Summary = "Thêm mới nhiệm vụ cho băng chuyền")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> InsertTask(OrderTaskRequestModel request)
         {
             try
@@ -67,6 +74,7 @@ namespace XuongMayBE.API.Controllers
         #region Cập nhật nhiệm vụ của băng chuyền
         [HttpPut()]
         [SwaggerOperation(Summary = "Cập nhật nhiệm vụ của băng chuyền")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> UpdateTask([FromBody] OrderTaskUpdateModel request)
         {
             try
@@ -85,8 +93,9 @@ namespace XuongMayBE.API.Controllers
         #endregion
 
         #region Cập nhật trạng thái nhiệm vụ hoàn thành
-        [HttpPut("TaskComplete/{id}")]
+        [HttpPut("{id}/TaskComplete")]
         [SwaggerOperation(Summary = "Cập nhật nhiệm vụ hoàn thành")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> UpdateTaskComplete(string id)
         {
             try
@@ -108,8 +117,9 @@ namespace XuongMayBE.API.Controllers
         #endregion
 
         #region Cập nhật trạng thái hủy nhiệm vụ
-        [HttpPut("TaskStop/{id}")]
+        [HttpPut("{id}/TaskCancel")]
         [SwaggerOperation(Summary = "Cập nhật hủy nhiệm vụ")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> UpdateTaskStop(string id)
         {
             try
@@ -131,8 +141,9 @@ namespace XuongMayBE.API.Controllers
         #endregion
 
         #region Cập nhật số lượng hoàn thành
-        [HttpPut("CompleteQuantity/{id}")]
+        [HttpPut("{id}/CompleteQuantity")]
         [SwaggerOperation(Summary = "Cập nhật số lượng đơn hàng hoàn thành")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> UpdateCompleteQuantity(string id, int quantity)
         {
             try
@@ -173,6 +184,7 @@ namespace XuongMayBE.API.Controllers
         #region Xóa nhiệm vụ của băng chuyền
         [HttpDelete("{id}")]
         [SwaggerOperation(Summary = "Xóa nhiệm vụ của băng chuyền")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> DeleteTask(string id)
         {
             try
