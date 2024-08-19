@@ -22,7 +22,7 @@ namespace XuongMay.Contract.Services.Interface
         Task<bool> CreateCategory(CategoryModel category);
         //update category
         Task UpdateCategory(string id, CategoryModel category);
-        //delete category by way update isWorking
+        //delete category by way update isDelete
         Task DeleteCategoryByUpdateStatus(string id);
         //delete category by id
         Task DeleteCategoryById(string id);
