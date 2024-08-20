@@ -24,6 +24,7 @@ namespace XuongMayBE.API.Controllers
 
         #region Get all the order
         [HttpGet("all-order")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         [SwaggerOperation(Summary = "Lấy tất cả order")]
         public async Task<IActionResult> GetAllOrder(int pageSize, int index = 1)
         {
@@ -34,6 +35,7 @@ namespace XuongMayBE.API.Controllers
         
         #region Get a specific order base on ID
         [HttpGet("/{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         [SwaggerOperation(Summary = "Lấy order dựa theo orderId")]
         public async Task<Orders?> GetOrderById([FromRoute] string id)
         {
@@ -43,6 +45,7 @@ namespace XuongMayBE.API.Controllers
         
         #region Create a new order
         [HttpPost("/orders")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         [SwaggerOperation(Summary = "Tạo 1 order mới")]
         public async Task<IActionResult> CreateOrder([FromBody] OrderModelView orderModelView)
         {
@@ -62,6 +65,7 @@ namespace XuongMayBE.API.Controllers
         
         #region Change detail of an exting order
         [HttpPut("/update-order/{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         [SwaggerOperation(Summary = "Chỉnh sửa 1 order dựa theo Id")]
         public async Task<IActionResult> UpdateOrder(string id, OrderModelView orderModelView)
         {
