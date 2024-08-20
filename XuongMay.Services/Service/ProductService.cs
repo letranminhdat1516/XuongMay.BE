@@ -54,6 +54,10 @@ namespace XuongMay.Services.Service
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Product.");
             }
+            if (!productsTemp.IsDelete)
+            {
+                throw new BaseException.BadRequestException("Bad Request", "Active products cannot be deleted!!!");
+            }
             await _unitOfWork.GetRepository<Products>().DeleteAsync(id);
             await _unitOfWork.GetRepository<Products>().SaveAsync();
 
@@ -67,10 +71,9 @@ namespace XuongMay.Services.Service
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Product");
             }
-
-            if(products.IsDelete)
+            if (products.IsDelete)
             {
-                throw new BaseException.BadRequestException("Bad Request", "Cannot delete active products");
+                throw new BaseException.BadRequestException("Bad Request", "Product has been deleted ");
             }
             products.IsDelete = true;
             products.DeletedBy = userClaim.Identity?.Name;
