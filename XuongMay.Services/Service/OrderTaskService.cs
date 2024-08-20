@@ -145,37 +145,41 @@ namespace XuongMay.Services.Service
         #endregion
 
         #region Update Order Task Quantity Complete
-        public async Task UpdateOrderTaskCompleteQuantity(object orderTaskId, int quantity)
+        public async Task UpdateOrderTaskCompleteQuantity(OrderTaskUpdateCompleteQuantity obj)
         {
-            var orderTask = await _orderTaskRepository.GetByIdAsync(orderTaskId);
+            var orderTask = await _orderTaskRepository.GetByIdAsync(obj.OrderTaskId);
             if (orderTask == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy nhiệm vụ");
             }
 
             var conveyor = await _conveyorRepository.GetByIdAsync(orderTask.ConveyorId);
-
             if (conveyor == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy băng chuyền");
             }
 
-            if (quantity > orderTask.Quantity)
+            if (obj.Quantity > orderTask.Quantity)
             {
                 throw new BaseException.ErrorException(400, "Bad Request", $"Số lượng hoàn thành không lớn hơn số lượng đang thực hiện (Số lượng đang thực hiện: {orderTask.Quantity})");
             }
 
-            if (quantity < 1)
+            if (obj.Quantity < 1)
             {
                 throw new BaseException.ErrorException(400, "Bad Request", "Số lượng hoàn thành phải lớn hơn 0");
             }
 
-            orderTask.CompleteQuantity = quantity;
-            orderTask.Quantity -= quantity;
+            orderTask.CompleteQuantity = obj.Quantity;
+            orderTask.Quantity -= obj.Quantity;
+            orderTask.LastUpdatedBy = obj.UpdateBy;
+            orderTask.LastUpdatedTime = CoreHelper.SystemTimeNow;
+
             await _orderTaskRepository.UpdateAsync(orderTask);
             if (orderTask.Quantity == 0)
             {
                 conveyor.IsWorking = false;
+                conveyor.LastUpdatedTime = CoreHelper.SystemTimeNow;
+                conveyor.LastUpdatedBy = obj.UpdateBy;
                 await _conveyorRepository.UpdateAsync(conveyor);
             }
             await SaveAsync();

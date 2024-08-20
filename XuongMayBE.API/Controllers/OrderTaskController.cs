@@ -25,7 +25,7 @@ namespace XuongMayBE.API.Controllers
         #region Lấy danh sách các nhiệm vụ
         [HttpGet()]
         [SwaggerOperation(Summary = "Lấy danh sách nhiệm vụ có phân trang")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
+        [Authorize(Roles = "ConveyorManager")]
         public async Task<IActionResult> GetAllOrderTask(int index = 1, int pageSize = 5)
         {
             var orderTasks = await _orderTaskService.GetAllOrderTask(index, pageSize);
@@ -51,7 +51,7 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                request.CreateBy = "KietPHG";
+                request.CreateBy = User.Identity?.Name ?? "";
                 await _orderTaskService.InsertOrderTask(request);
                 return Ok(BaseResponse<string>.OkResponse("Tạo mới nhiệm vụ thành công"));
             }
@@ -70,7 +70,7 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                request.UpdateBy = "KietPHG";
+                request.UpdateBy = User.Identity?.Name ?? "";
                 await _orderTaskService.UpdateOrderTask(request);
                 return Ok(BaseResponse<string>.OkResponse("Cập nhật nhiệm vụ thành công"));
             }
@@ -89,7 +89,7 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                var orderTaskUpdate = new OrderTaskUpdateModel { OrderTaskId = id, UpdateBy = "KietPHG" };
+                var orderTaskUpdate = new OrderTaskUpdateModel { OrderTaskId = id, UpdateBy = User.Identity?.Name ?? "" };
                 orderTaskUpdate.SetStatus("Completed");
 
                 await _orderTaskService.UpdateOrderTaskStatus(orderTaskUpdate);
@@ -111,7 +111,7 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                var orderTaskUpdate = new OrderTaskUpdateModel { OrderTaskId = id, UpdateBy = "KietPHG" };
+                var orderTaskUpdate = new OrderTaskUpdateModel { OrderTaskId = id, UpdateBy = User.Identity?.Name ?? "" };
                 orderTaskUpdate.SetStatus("Canceled");
 
                 await _orderTaskService.UpdateOrderTaskStatus(orderTaskUpdate);
@@ -133,8 +133,14 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                await _orderTaskService.UpdateOrderTaskCompleteQuantity(id, quantity);
-                return Ok(BaseResponse<string>.OkResponse("Cập nhật thành công"));
+                var completeQuantity = new OrderTaskUpdateCompleteQuantity
+                {
+                    OrderTaskId = id,
+                    Quantity = quantity,
+                    UpdateBy = User.Identity?.Name ?? ""
+                };
+                await _orderTaskService.UpdateOrderTaskCompleteQuantity(completeQuantity);
+                return Ok(BaseResponse<string>.OkResponse("Cập nhật số lượng thành công"));
             }
             catch (BaseException.ErrorException ex)
             {
@@ -174,8 +180,8 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                await _orderTaskService.DeleteOrderTask(id, "KietPHG");
-                return Ok(BaseResponse<string>.OkResponse("Xóa vụ thành công"));
+                await _orderTaskService.DeleteOrderTask(id, User.Identity?.Name ?? "");
+                return Ok(BaseResponse<string>.OkResponse("Xóa nhiệm vụ thành công"));
             }
             catch (BaseException.ErrorException ex)
             {
