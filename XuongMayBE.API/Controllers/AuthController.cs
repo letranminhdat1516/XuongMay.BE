@@ -48,13 +48,34 @@ namespace XuongMayBE.API.Controllers
         [HttpPost("new_account")]
         public async Task<IActionResult> Register([FromBody] RegisterModelView model)
         {
+            // Gọi phương thức RegisterAsync từ UserService để đăng ký người dùng mới
             var result = await _userService.RegisterAsync(model, User);
+
+            // Kiểm tra nếu result không phải null, có nghĩa là có lỗi
             if (result != null)
             {
-                return BadRequest(result);
+                // Trả về lỗi 400 với thông báo lỗi cụ thể
+                return BadRequest(new { message = result });
             }
 
-            return Ok("User registered successfully");
+            // Nếu không có lỗi, tạo và trả về token đăng nhập
+            var token = await _userService.LoginAsync(new LoginModelView
+            {
+                Username = model.Username,
+                Password = model.Password
+            });
+
+            // Kiểm tra token đã được tạo chưa
+            if (token == null)
+            {
+                return BadRequest(new { message = "Đăng ký thành công nhưng không thể tạo token đăng nhập" });
+            }
+
+            // Trả về thành công với token
+            return Ok(new { token });
         }
+
+
+
     }
 }

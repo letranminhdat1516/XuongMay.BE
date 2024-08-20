@@ -8,7 +8,6 @@ using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Core;
 using XuongMay.ModelViews.OrderModelViews;
-using XuongMay.Repositories.UOW;
 namespace XuongMay.Contract.Services.Interface
 {
     public interface IOrderProductService
