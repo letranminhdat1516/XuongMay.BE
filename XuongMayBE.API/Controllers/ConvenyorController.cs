@@ -58,7 +58,7 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                request.CreateBy = "KietPHG";
+                request.CreateBy = User.Identity?.Name ?? "";
                 await _conveyorService.InsertNewConveyor(request);
                 return Ok(BaseResponse<string>.OkResponse("Tạo mới băng chuyền thành công"));
             }
@@ -78,7 +78,7 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                request.UpdateBy = "KietPHG";
+                request.UpdateBy = User.Identity?.Name ?? "";
                 await _conveyorService.UpdateConveyor(request);
                 return Ok(BaseResponse<string>.OkResponse("Cập nhật băng chuyền thành công"));
             }
@@ -92,12 +92,12 @@ namespace XuongMayBE.API.Controllers
         #region Xóa thông tin băng chuyền
         [HttpDelete("{id}")]
         [SwaggerOperation(Summary = "Xóa thông tin băng chuyền")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,ConveyorManager")]
         public async Task<IActionResult> DeleteConveyor(string id)
         {
             try
             {
-                await _conveyorService.DeleteConveyor(id, "KietPHG");
+                await _conveyorService.DeleteConveyor(id, User.Identity?.Name ?? "");
                 return Ok(BaseResponse<string>.OkResponse("Xóa băng chuyền thành công"));
             }
             catch (BaseException.ErrorException ex)
