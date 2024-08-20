@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using XuongMay.Contract.Repositories.Entity;
@@ -23,6 +24,7 @@ namespace XuongMayBE.API.Controllers
 
         //api get all product
         [HttpGet("get-all-produtc")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetAllProduct(int index = 1, int pageSize = 9)
         {
             BasePaginatedList<Products> products = await _productService.GetAllProductPaging(index, pageSize);
@@ -35,6 +37,7 @@ namespace XuongMayBE.API.Controllers
 
         //api get product with filter
         [HttpGet("get-product-with-filter")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetProductWithFilter(string keyWord = "", int index = 1, int pageSize = 9)
         {
             try
@@ -54,6 +57,7 @@ namespace XuongMayBE.API.Controllers
 
         //api get product by id
         [HttpGet("get-product-by-id/{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetProduct(string id)
         {
             try
@@ -77,6 +81,7 @@ namespace XuongMayBE.API.Controllers
 
         //api insert product
         [HttpPost("insert-product")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> InsertProduct([FromBody] ProductModel product)
         {
             try
@@ -94,6 +99,7 @@ namespace XuongMayBE.API.Controllers
 
         //api update product
         [HttpPut("update-product/{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> UpdateProduct(string id, [FromBody] ProductModel product)
         {
             try
@@ -113,6 +119,7 @@ namespace XuongMayBE.API.Controllers
 
         //api delete product
         [HttpDelete("delete-product/{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteProduct(string id)
         {
             try
@@ -132,6 +139,7 @@ namespace XuongMayBE.API.Controllers
 
         //api remove product by way update status
         [HttpDelete("delete-product-by-update-status")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteProductByUpdateStatus(string id)
         {
             try

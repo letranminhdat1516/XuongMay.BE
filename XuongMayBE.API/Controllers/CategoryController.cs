@@ -8,6 +8,7 @@ using XuongMay.ModelViews.CategoryModelViews;
 using XuongMay.Core;
 using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
 using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 
 namespace XuongMayBE.API.Controllers
 {
@@ -23,6 +24,7 @@ namespace XuongMayBE.API.Controllers
 
         //api get all category
         [HttpGet("get-all-category")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetAllCategory(int index = 1, int pageSize = 9)
         {
             BasePaginatedList<Category> categories = await _categoryService.GetAllCategoryPaging(index, pageSize);
@@ -35,6 +37,7 @@ namespace XuongMayBE.API.Controllers
 
         //api get category with filter
         [HttpGet("get-category-with-filter")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetCategoryWithFilter(string keyWord = "", int index = 1, int pageSize = 9)
         {
             try
@@ -54,6 +57,7 @@ namespace XuongMayBE.API.Controllers
 
         //api get category by id
         [HttpGet("get-category-by-id/{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetCategoryById(string id)
         {
             try
@@ -77,6 +81,7 @@ namespace XuongMayBE.API.Controllers
 
         //api insert category
         [HttpPost("insert-category")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> InsertCategory([FromBody] CategoryModel category)
         {
             try
@@ -94,6 +99,7 @@ namespace XuongMayBE.API.Controllers
 
         //api update category
         [HttpPut("update-category/{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> UpdateCategory(string id, [FromBody] CategoryModel category)
         {
             try
@@ -114,6 +120,7 @@ namespace XuongMayBE.API.Controllers
 
         //api remove category by way update status
         [HttpDelete("delete-category-by-update-status")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteCategoryByUpdateStatus(string id)
         {
             try
@@ -133,6 +140,7 @@ namespace XuongMayBE.API.Controllers
 
         //api remove category by id
         [HttpDelete("delete-category/{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteCategory(string id)
         {
             try
