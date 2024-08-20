@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Security.Claims;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
@@ -43,7 +46,8 @@ namespace XuongMayBE.API.Controllers
         [SwaggerOperation(Summary = "Tạo 1 order mới")]
         public async Task<IActionResult> CreateOrder([FromBody] OrderModelView orderModelView)
         {
-            Task createOrder = _orderProductService.CreateOrder(orderModelView);
+            var userName = User.FindFirst(ClaimTypes.Name)?.Value;
+            Task createOrder = _orderProductService.CreateOrder(orderModelView,userName);
             await createOrder;
             if (createOrder.IsCompleted == true)
             {
@@ -61,7 +65,8 @@ namespace XuongMayBE.API.Controllers
         [SwaggerOperation(Summary = "Chỉnh sửa 1 order dựa theo Id")]
         public async Task<IActionResult> UpdateOrder(string id, OrderModelView orderModelView)
         {
-            Task updateOrder = _orderProductService.UpdateAsync(id,orderModelView);
+            var userName = User.FindFirst(ClaimTypes.Name)?.Value;
+            Task updateOrder = _orderProductService.UpdateAsync(id,orderModelView,userName);
             await updateOrder;
             if (updateOrder.IsCompleted == true)
             {
@@ -76,9 +81,11 @@ namespace XuongMayBE.API.Controllers
         
         #region Delete an order(change the IsDelete to true)
         [HttpDelete("/delete/{id}")]
+        [Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme,Roles ="Admin")]
         [SwaggerOperation(Summary = "Xoá 1 order")]
-        public async Task<IActionResult> DeleteOrder(string id,string deleterName)
-        {            
+        public async Task<IActionResult> DeleteOrder(string id)
+        {
+            var deleterName = User.FindFirst(ClaimTypes.Name)?.Value;
             Task orderDeleted = _orderProductService.DeleteAsync(id,deleterName);
             await orderDeleted;
             ;

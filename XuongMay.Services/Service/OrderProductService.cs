@@ -5,6 +5,7 @@ using XuongMay.Core;
 using XuongMay.ModelViews.OrderModelViews;
 using XuongMay.Core.Utils;
 using XuongMay.Core.Base;
+using Microsoft.AspNetCore;
 
 
 namespace XuongMay.Services.Service
@@ -12,7 +13,7 @@ namespace XuongMay.Services.Service
     public class OrderProductService : IOrderProductService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IGenericRepository<Orders> _orderRepository;
+        private readonly IGenericRepository<Orders> _orderRepository;        
 
         public OrderProductService(IUnitOfWork unitOfWork)
         {
@@ -33,15 +34,15 @@ namespace XuongMay.Services.Service
         }
         #endregion
         #region Create order
-        public async Task CreateOrder(OrderModelView order)
-        {
+        public async Task CreateOrder(OrderModelView order, string userName)
+        {            
             Orders _order = new Orders
             {                
                 ProductId = order.ProductId,
                 OrdersCode = order.OrdersCode,
                 Quantity = order.Quantity,
                 TotalPrice = order.TotalPrice,
-                CreatedBy = order.CreatedBy,
+                CreatedBy = userName,
                 CreatedTime=CoreHelper.SystemTimeNow
             };
             await _orderRepository.InsertAsync(_order);
@@ -50,7 +51,7 @@ namespace XuongMay.Services.Service
         #endregion
 
         #region Update order
-        public async Task UpdateAsync(string orderId,OrderModelView order)
+        public async Task UpdateAsync(string orderId,OrderModelView order,string userName)
         {
             Orders _order = await _orderRepository.GetByIdAsync(orderId);
             if(_order != null) 
@@ -60,7 +61,7 @@ namespace XuongMay.Services.Service
                 _order.OrdersCode = order.OrdersCode;
                 _order.Quantity = order.Quantity;
                 _order.TotalPrice = order.TotalPrice;
-                _order.LastUpdatedBy=order.LastUpdatedBy;
+                _order.LastUpdatedBy=userName;
                 await _orderRepository.SaveAsync();
             }
             else
