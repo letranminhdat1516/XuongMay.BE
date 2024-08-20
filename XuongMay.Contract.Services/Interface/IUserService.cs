@@ -2,6 +2,7 @@
 using XuongMay.Core;
 using XuongMay.ModelViews.AuthModelViews;
 using XuongMay.ModelViews.UserModelViews;
+using XuongMay.Contract.Repositories.Entity;
 
 namespace XuongMay.Contract.Services.Interface
 {
@@ -36,5 +37,20 @@ namespace XuongMay.Contract.Services.Interface
         /// Xóa người dùng (chuyển trạng thái IsDelete).
         /// </summary>
         Task<string?> DeleteUserAsync(string id, ClaimsPrincipal userClaims);
+
+        /// <summary>
+        /// Tạo một vai trò mới.
+        /// </summary>
+        Task CreateRole(ApplicationRole role, ClaimsPrincipal user);
+
+        /// <summary>
+        /// Cập nhật một vai trò hiện có.
+        /// </summary>
+        Task UpdateRole(ApplicationRole role, ClaimsPrincipal user);
+
+        /// <summary>
+        /// Xóa một vai trò theo ID.
+        /// </summary>
+        Task DeleteRole(Guid roleId, ClaimsPrincipal user);
     }
 }
