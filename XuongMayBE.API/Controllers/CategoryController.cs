@@ -113,7 +113,7 @@ namespace XuongMayBE.API.Controllers
 
         //api remove category by way update status
         [HttpDelete("delete-category-by-update-status")]
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> DeleteCategoryByUpdateStatus(string id)
         {
             try
@@ -133,7 +133,7 @@ namespace XuongMayBE.API.Controllers
 
         //api remove category by id
         [HttpDelete("delete-category/{id}")]
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> DeleteCategory(string id)
         {
             try
