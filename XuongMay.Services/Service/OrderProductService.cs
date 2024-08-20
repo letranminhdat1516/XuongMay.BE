@@ -20,19 +20,30 @@ namespace XuongMay.Services.Service
             _unitOfWork = unitOfWork;
             _orderRepository = _unitOfWork.GetRepository<Orders>();
         }
-        #region
+
+        #region Get all Order
         public Task<BasePaginatedList<Orders>> GetAllAsync(int index, int pageSize)
         {
             var orderList = _orderRepository.Entities.Where(order => !order.IsDelete);
             return _orderRepository.GetPagging(orderList, index, pageSize);
         }
         #endregion
+
         #region Get an order by Id
         public async Task<Orders?> GetByIdAsync(string id)
         {
-            return await _orderRepository.GetByIdAsync(id);
+            Orders order= await _orderRepository.GetByIdAsync(id);
+            if (!order.IsDelete)
+            {
+                return order;
+            }
+            else
+            {
+                return null;
+            }
         }
         #endregion
+
         #region Create order
         public async Task CreateOrder(OrderModelView order, string userName)
         {            
