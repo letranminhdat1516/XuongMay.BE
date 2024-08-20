@@ -1,4 +1,5 @@
-﻿using XuongMay.Contract.Repositories.Entity;
+﻿using System.Security.Claims;
+using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
@@ -43,7 +44,7 @@ namespace XuongMay.Services.Service
         }
 
         //insert category
-        public async Task<bool> CreateCategory(CategoryModel category)
+        public async Task<bool> CreateCategory(CategoryModel category, ClaimsPrincipal userClaims)
         {
             try
             {
@@ -52,6 +53,7 @@ namespace XuongMay.Services.Service
                 categoryTemp.CategoryDescription = category.CategoryDescription;
                 categoryTemp.CreatedTime = CoreHelper.SystemTimeNow;
                 categoryTemp.LastUpdatedTime = CoreHelper.SystemTimeNow;
+                categoryTemp.CreatedBy = userClaims.Identity?.Name;
                 await _unitOfWork.GetRepository<Category>().InsertAsync(categoryTemp);
                 await _unitOfWork.GetRepository<Category>().SaveAsync();
                 return true;
@@ -80,7 +82,7 @@ namespace XuongMay.Services.Service
         }
 
         //delete category by way update isDelete
-        public async Task DeleteCategoryByUpdateStatus(string id)
+        public async Task DeleteCategoryByUpdateStatus(string id, ClaimsPrincipal userClaims)
         {
             Category? categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
             if (categoryTemp == null)
@@ -92,13 +94,14 @@ namespace XuongMay.Services.Service
                 throw new BaseException.BadRequestException("Bad Request", "Cannot delete active categories");
             }
             categoryTemp.IsDelete = true;
+            categoryTemp.DeletedBy = userClaims.Identity?.Name;
             categoryTemp.DeletedTime = CoreHelper.SystemTimeNow;
             await _unitOfWork.GetRepository<Category>().UpdateAsync(categoryTemp);
             await _unitOfWork.GetRepository<Category>().SaveAsync();
         }
 
         //update catogory
-        public async Task UpdateCategory(string id, CategoryModel category)
+        public async Task UpdateCategory(string id, CategoryModel category, ClaimsPrincipal userClaims)
         {
 
             Category? categoryTemp = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id);
@@ -108,6 +111,7 @@ namespace XuongMay.Services.Service
             }
             categoryTemp.CategoryName = category.CategoryName;
             categoryTemp.CategoryDescription = category.CategoryDescription;
+            categoryTemp.LastUpdatedBy = userClaims.Identity?.Name;
             categoryTemp.LastUpdatedTime = CoreHelper.SystemTimeNow;
             await _unitOfWork.GetRepository<Category>().UpdateAsync(categoryTemp);
             await _unitOfWork.GetRepository<Category>().SaveAsync();
