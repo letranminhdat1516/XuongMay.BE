@@ -1,9 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.Core;
 using XuongMay.Core.Base;
+using XuongMay.ModelViews.ProductModelViews;
+using XuongMay.Services.Service;
 
 namespace XuongMayBE.API.Controllers
 {
@@ -20,97 +24,138 @@ namespace XuongMayBE.API.Controllers
 
         //api get all product
         [HttpGet("get-all-produtc")]
-        public async Task<IActionResult> GetAllProduct()
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetAllProduct(int index = 1, int pageSize = 9)
         {
-            IList<Products> products = await _productService.GetAll();
-            if (products == null || products.Count == 0)
+            BasePaginatedList<Products> products = await _productService.GetAllProductPaging(index, pageSize);
+            if (products == null)
             {
-                return BadRequest("List product empty");
+                return NotFound(BaseResponse<string>.NotFoundResponse("List Product Empty !!!"));
             }
-            return Ok(BaseResponse<IList<Products>>.OkResponse(products));
+            return Ok(BaseResponse<BasePaginatedList<Products>>.OkResponse(products));
+        }
+
+        //api get product with filter
+        [HttpGet("get-product-with-filter")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetProductWithFilter(string keyWord = "", int index = 1, int pageSize = 9)
+        {
+            try
+            {
+                BasePaginatedList<Products> products = await _productService.GetProductByFilter(keyWord, index, pageSize);
+                if (products == null)
+                {
+                    return NotFound(BaseResponse<string>.NotFoundResponse("Not found category"));
+                }
+                return Ok(BaseResponse<BasePaginatedList<Products>>.OkResponse(products));
+            }
+            catch (BaseException.ErrorException ex)
+            {
+                return NotFound(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
         }
 
         //api get product by id
         [HttpGet("get-product-by-id/{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetProduct(string id)
         {
-            Products product = await _productService.GetProdutcById(id);
-            if (product == null)
+            try
             {
-                return BadRequest("Product does not exits !!!");
+                Products products = await _productService.GetProdutcById(id);
+                if (products == null)
+                {
+                    return NotFound(BaseResponse<string>.NotFoundResponse("Not found product"));
+                }
+                return Ok(BaseResponse<Products>.OkResponse(products));
             }
-            return Ok(BaseResponse<Products>.OkResponse(product));
+            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
+            {
+                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+            catch (BaseException.BadRequestException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
         }
 
         //api insert product
         [HttpPost("insert-product")]
-        public async Task<IActionResult> InsertProduct([FromBody] Products product)
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> InsertProduct([FromBody] ProductModel product)
         {
-            if (product == null)
-            {
-                return BadRequest("Product can not empty!!!");
-            }
             try
             {
-                bool result = await _productService.CreateProduct(product);
-                if (result)
-                {
-                    return Ok("Insert product successfully.");
-                }
-                return BadRequest("Insert product fail !!!");
+                await _productService.CreateProduct(product);
+                var response = BaseResponse<string>.OkResponse("Product inserted successfully.");
+                return Ok(response);
             }
-            catch (Exception ex)
+            catch (BaseException.ErrorException ex)
             {
-                Console.WriteLine(ex.Message);
-                return StatusCode(500, "Internal server error.");
+                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
+                return BadRequest(response);
             }
         }
 
         //api update product
-        [HttpPut("update-product")]
-        public async Task<IActionResult> UpdateProduct([FromBody] Products product)
+        [HttpPut("update-product/{id}")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> UpdateProduct(string id, [FromBody] ProductModel product)
         {
-            if (product == null)
-            {
-                return BadRequest("Product can not empty!!!");
-            }
             try
             {
-                bool result = await _productService.UpdateProduct(product);
-                if (result)
-                {
-                    return Ok("Update product successfull.");
-                }
-                return BadRequest("Update produtc fail !!!");
+                await _productService.UpdateProduct(id, product);
+                return Ok(BaseResponse<string>.OkResponse("Product update successfully."));
             }
-            catch (Exception ex)
+            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
             {
-                Console.WriteLine(ex.Message);
-                return StatusCode(500, "Internal server error.");
+                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+            catch (BaseException.BadRequestException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
 
         //api delete product
         [HttpDelete("delete-product/{id}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteProduct(string id)
         {
             try
             {
-                bool result = await _productService.DeleteProductById(id);
-                if (result)
-                {
-                    return Ok("Delete product successfull.");
-                }
-                return BadRequest("Delete product fail !!!");
+                await _productService.DeleteProductById(id);
+                return Ok(BaseResponse<string>.OkResponse("Product delete successfully."));
             }
-            catch (Exception ex)
+            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
             {
-                Console.WriteLine(ex.Message);
-                return StatusCode(500, "Internal server error.");
+                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+            catch (BaseException.BadRequestException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
 
-
+        //api remove product by way update status
+        [HttpDelete("delete-product-by-update-status")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> DeleteProductByUpdateStatus(string id)
+        {
+            try
+            {
+                await _productService.DeleteProductByUpdateStatus(id);
+                return Ok(BaseResponse<string>.OkResponse("Product delete successfully."));
+            }
+            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
+            {
+                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+            catch (BaseException.BadRequestException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+        }
 
     }
 }
