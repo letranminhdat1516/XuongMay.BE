@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using XuongMay.Contract.Repositories.Entity;
@@ -23,7 +24,7 @@ namespace XuongMay.Services.Service
         }
 
         //insert product
-        public async Task<bool> CreateProduct(ProductModel products)
+        public async Task<bool> CreateProduct(ProductModel products, ClaimsPrincipal userClaims)
         {
             try
             {
@@ -32,6 +33,7 @@ namespace XuongMay.Services.Service
                 productsTemp.ProductDescription = products.ProductDescription;
                 productsTemp.ProductPrice = products.ProductPrice;
                 productsTemp.CategoryId = products.CategoryId;
+                productsTemp.CreatedBy = userClaims.Identity?.Name;
                 productsTemp.CreatedTime = CoreHelper.SystemTimeNow;
                 productsTemp.LastUpdatedTime = CoreHelper.SystemTimeNow;
                 await _unitOfWork.GetRepository<Products>().InsertAsync(productsTemp);
@@ -58,7 +60,7 @@ namespace XuongMay.Services.Service
         }
 
         //remove product by way update status
-        public async Task DeleteProductByUpdateStatus(string id)
+        public async Task DeleteProductByUpdateStatus(string id, ClaimsPrincipal userClaim)
         {
             Products products = await _unitOfWork.GetRepository<Products>().GetByIdAsync(id);
             if(products == null)
@@ -71,6 +73,7 @@ namespace XuongMay.Services.Service
                 throw new BaseException.BadRequestException("Bad Request", "Cannot delete active products");
             }
             products.IsDelete = true;
+            products.DeletedBy = userClaim.Identity?.Name;
             products.DeletedTime = CoreHelper.SystemTimeNow;
             await _unitOfWork.GetRepository<Products>().UpdateAsync(products);
             await _unitOfWork.GetRepository<Products>().SaveAsync();
@@ -100,16 +103,33 @@ namespace XuongMay.Services.Service
         }
 
         //update product
-        public async Task UpdateProduct(string id, ProductModel products)
+        public async Task UpdateProduct(string id, ProductModel products, ClaimsPrincipal userClaim)
         {
             Products productTemp = await _unitOfWork.GetRepository<Products>().GetByIdAsync(id);
-            if (products == null)
+            if (productTemp == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Product.");
             }
             productTemp.ProductName = products.ProductName;
             productTemp.ProductDescription = products.ProductDescription;
             productTemp.ProductPrice = products.ProductPrice;
+            productTemp.IsWorking = products.IsWorking;
+            productTemp.LastUpdatedBy = userClaim.Identity?.Name; 
+            productTemp.LastUpdatedTime = CoreHelper.SystemTimeNow;
+            await _unitOfWork.GetRepository<Products>().UpdateAsync(productTemp);
+            await _unitOfWork.GetRepository<Products>().SaveAsync();
+        }
+
+        //update status Isworking of product
+        public async Task UpdateProductStatus(string id, bool status, ClaimsPrincipal userClaim)
+        {
+            Products productTemp = await _unitOfWork.GetRepository<Products>().GetByIdAsync(id);
+            if (productTemp == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Not Found Product.");
+            }
+            productTemp.IsWorking = status;
+            productTemp.LastUpdatedBy = userClaim?.Identity?.Name;
             productTemp.LastUpdatedTime = CoreHelper.SystemTimeNow;
             await _unitOfWork.GetRepository<Products>().UpdateAsync(productTemp);
             await _unitOfWork.GetRepository<Products>().SaveAsync();
