@@ -74,7 +74,7 @@ namespace XuongMay.Services.Service
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");
             }
-            if (categoryTemp.IsDelete)
+            if (!categoryTemp.IsDelete)
             {
                 throw new BaseException.BadRequestException("Bad Request", "Cannot delete active categories");
             }
@@ -95,10 +95,6 @@ namespace XuongMay.Services.Service
             if (categoryTemp == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");
-            }
-            if (categoryTemp.IsDelete)
-            {
-                throw new BaseException.BadRequestException("Bad Request", "Cannot delete active categories");
             }
 
             bool hasProducts = await _unitOfWork.GetRepository<Products>().Entities
