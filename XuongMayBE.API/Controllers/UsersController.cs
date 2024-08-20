@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
 using XuongMay.Core.Base;
@@ -10,7 +12,7 @@ namespace XuongMayBE.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin, ConveyorManager")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin, ConveyorManager")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -48,10 +50,9 @@ namespace XuongMayBE.API.Controllers
 
         /// <summary>
         /// Cập nhật thông tin người dùng.
-        /// Chỉ dành cho Admin.
         /// </summary>
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UserUpdateModel updateModel)
         {
             var result = await _userService.UpdateUserAsync(id, updateModel, User);
@@ -67,15 +68,53 @@ namespace XuongMayBE.API.Controllers
         /// Chỉ dành cho Admin.
         /// </summary>
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(string id)
         {
             var result = await _userService.DeleteUserAsync(id, User);
             if (!string.IsNullOrEmpty(result))
             {
-                return BadRequest(BaseResponse<string>.ErrorResponse(result));
+                // Trả về lỗi chi tiết
+                return NotFound(new { message = result });
             }
-            return Ok(BaseResponse<string>.OkResponse("Xóa người dùng thành công"));
+            return Ok(new { message = "Xóa người dùng thành công" });
         }
+        [HttpPost("roles")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        public async Task<IActionResult> CreateRole([FromBody] ApplicationRole role)
+        {
+            if (role == null)
+            {
+                return BadRequest("Role không được rỗng.");
+            }
+
+            await _userService.CreateRole(role, User);
+
+            return Ok("Tạo vai trò thành công.");
+        }
+
+        [HttpPut("roles/{Id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        public async Task<IActionResult> UpdateRole(Guid roleId, [FromBody] ApplicationRole role)
+        {
+            if (role == null || role.Id != roleId)
+            {
+                return BadRequest("Thông tin vai trò không hợp lệ.");
+            }
+
+            await _userService.UpdateRole(role, User);
+
+            return Ok("Cập nhật vai trò thành công.");
+        }
+
+        [HttpDelete("roles/{Id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        public async Task<IActionResult> DeleteRole(Guid roleId)
+        {
+            await _userService.DeleteRole(roleId, User);
+
+            return Ok("Xóa vai trò thành công.");
+        }
+
     }
 }

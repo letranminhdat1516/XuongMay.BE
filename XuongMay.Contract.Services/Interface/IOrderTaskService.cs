@@ -15,7 +15,7 @@ namespace XuongMay.Contract.Services.Interface
         Task InsertOrderTask(OrderTaskRequestModel obj);
         Task UpdateOrderTask(OrderTaskUpdateModel obj);
         Task UpdateOrderTaskStatus(OrderTaskUpdateModel obj);
-        Task UpdateOrderTaskCompleteQuantity(object orderTaskId, int quantity);
+        Task UpdateOrderTaskCompleteQuantity(OrderTaskUpdateCompleteQuantity obj);
         Task DeleteOrderTask(object orderTaskId, string deleteBy);
     }
 }

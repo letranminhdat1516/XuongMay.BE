@@ -1,7 +1,4 @@
-﻿using Azure.Core;
-using Microsoft.EntityFrameworkCore;
-using System.Globalization;
-using XuongMay.Contract.Repositories.Entity;
+﻿using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
@@ -42,7 +39,7 @@ namespace XuongMay.Services.Service
                 .Entities
                 .Where(con =>
                 !con.IsDelete
-                && (con.ConveyorName.Contains(keyword) || keyword == string.Empty));
+                && (con.ConveyorName.Contains(keyword) || string.IsNullOrWhiteSpace(keyword)));
 
             return _conveyorRepository.GetPagging(conveyors, index, pageSize);
         }
@@ -71,7 +68,7 @@ namespace XuongMay.Services.Service
 
             if (conveyor.IsWorking)
             {
-                throw new BaseException.BadRequestException("Bad Request", "Không thể cập nhật! Băng chuyền đang hoạt động");
+                throw new BaseException.ErrorException(400, "Bad Request", "Không thể cập nhật! Băng chuyền đang hoạt động");
             }
 
             conveyor.ConveyorName = obj.ConveyorName;
@@ -94,7 +91,7 @@ namespace XuongMay.Services.Service
             }
             if (conveyor.IsWorking)
             {
-                throw new BaseException.BadRequestException("Bad Request", "Không thể xóa! Băng chuyền đang hoạt động");
+                throw new BaseException.ErrorException(400, "Bad Request", "Không thể xóa! Băng chuyền đang hoạt động");
             }
 
             conveyor.DeletedTime = CoreHelper.SystemTimeNow;

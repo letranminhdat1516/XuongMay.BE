@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
@@ -22,17 +24,18 @@ namespace XuongMayBE.API.Controllers
         #region Lấy danh sách các băng chuyền
         [HttpGet()]
         [SwaggerOperation(Summary = "Lấy danh sách các băng chuyền có phân trang")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> GetConveyorPaging(int index = 1, int pageSize = 10)
         {
             BasePaginatedList<Conveyor> conveyors = await _conveyorService.GetAllConveyorPaging(index, pageSize);
-            var response = BaseResponse<BasePaginatedList<Conveyor>>.OkResponse(conveyors);
-            return Ok(response);
+            return Ok(BaseResponse<BasePaginatedList<Conveyor>>.OkResponse(conveyors));
         }
         #endregion
 
         #region Lấy thông tin băng chuyền theo filter
         [HttpGet("filter")]
         [SwaggerOperation(Summary = "Lấy thông tin của băng chuyền theo filter")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> GetOneConveyor(string keyword = "", int index = 1, int pageSize = 10)
         {
             try
@@ -50,19 +53,18 @@ namespace XuongMayBE.API.Controllers
         #region Thêm mới băng chuyền
         [HttpPost()]
         [SwaggerOperation(Summary = "Tạo mới băng chuyền")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> InsertConveyor([FromBody] ConveyorRequestModel request)
         {
             try
             {
-                request.CreateBy = "KietPHG";
+                request.CreateBy = User.Identity?.Name ?? "";
                 await _conveyorService.InsertNewConveyor(request);
-                var response = BaseResponse<string>.OkResponse("Tạo mới băng chuyền thành công");
-                return Ok(response);
+                return Ok(BaseResponse<string>.OkResponse("Tạo mới băng chuyền thành công"));
             }
             catch (BaseException.ErrorException ex)
             {
-                var response = BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString());
-                return BadRequest(response);
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
 
         }
@@ -71,21 +73,18 @@ namespace XuongMayBE.API.Controllers
         #region Cập nhật thông tin băng chuyền
         [HttpPut()]
         [SwaggerOperation(Summary = "Cập nhật thông tin băng chuyền")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         public async Task<IActionResult> UpdateConveyor([FromBody] ConveyorUpdateModel request)
         {
             try
             {
-                request.UpdateBy = "KietPHG";
+                request.UpdateBy = User.Identity?.Name ?? "";
                 await _conveyorService.UpdateConveyor(request);
                 return Ok(BaseResponse<string>.OkResponse("Cập nhật băng chuyền thành công"));
             }
-            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
+            catch (BaseException.ErrorException ex)
             {
-                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
-            }
-            catch (BaseException.BadRequestException ex)
-            {
-                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+                return NotFound(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion
@@ -93,20 +92,17 @@ namespace XuongMayBE.API.Controllers
         #region Xóa thông tin băng chuyền
         [HttpDelete("{id}")]
         [SwaggerOperation(Summary = "Xóa thông tin băng chuyền")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,ConveyorManager")]
         public async Task<IActionResult> DeleteConveyor(string id)
         {
             try
             {
-                await _conveyorService.DeleteConveyor(id, "KietPHG");
+                await _conveyorService.DeleteConveyor(id, User.Identity?.Name ?? "");
                 return Ok(BaseResponse<string>.OkResponse("Xóa băng chuyền thành công"));
             }
-            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
+            catch (BaseException.ErrorException ex)
             {
-                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
-            }
-            catch (BaseException.BadRequestException ex)
-            {
-                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+                return NotFound(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion

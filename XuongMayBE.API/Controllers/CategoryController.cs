@@ -1,18 +1,17 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core.Base;
-using XuongMay.Services.Service;
 using XuongMay.ModelViews.CategoryModelViews;
 using XuongMay.Core;
-using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
-using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace XuongMayBE.API.Controllers
 {
     [Route("api/category")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin, ConveyorManager")]
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
@@ -28,21 +27,21 @@ namespace XuongMayBE.API.Controllers
             BasePaginatedList<Category> categories = await _categoryService.GetAllCategoryPaging(index, pageSize);
             if (categories == null)
             {
-                return BadRequest("List Category empty !!!");
+                return NotFound(BaseResponse<string>.NotFoundResponse("List Category Empty !!!"));
             }
             return Ok(BaseResponse<BasePaginatedList<Category>>.OkResponse(categories));
         }
 
         //api get category with filter
         [HttpGet("get-category-with-filter")]
-        public async Task<IActionResult> GetCategoryWithFilter(string keyword = "", int index = 1, int pageSize = 9)
+        public async Task<IActionResult> GetCategoryWithFilter(string keyWord = "", int index = 1, int pageSize = 9)
         {
             try
             {
-                BasePaginatedList<Category> categories = await _categoryService.GetCategoryByFilter(keyword, index, pageSize);
+                BasePaginatedList<Category> categories = await _categoryService.GetCategoryByFilter(keyWord, index, pageSize);
                 if (categories == null)
                 {
-                    return BadRequest("List Category empty !!!");
+                    return NotFound(BaseResponse<string>.NotFoundResponse("Not found category"));
                 }
                 return Ok(BaseResponse<BasePaginatedList<Category>>.OkResponse(categories));
             }
@@ -59,11 +58,19 @@ namespace XuongMayBE.API.Controllers
             try
             {
                 Category category = await _categoryService.GetCategoryById(id);
+                if (category == null)
+                {
+                    return NotFound(BaseResponse<string>.NotFoundResponse("Not found category"));
+                }
                 return Ok(BaseResponse<Category>.OkResponse(category));
             }
-            catch (BaseException.ErrorException ex)
+            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
             {
-                return NotFound(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+            catch (BaseException.BadRequestException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
 
@@ -73,8 +80,8 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                await _categoryService.CreateCategory(category);
-                var response = BaseResponse<string>.OkResponse("TCategory inserted successfully.");
+                await _categoryService.CreateCategory(category, User);
+                var response = BaseResponse<string>.OkResponse("Category inserted successfully.");
                 return Ok(response);
             }
             catch (BaseException.ErrorException ex)
@@ -90,7 +97,7 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                await _categoryService.UpdateCategory(id, category);
+                await _categoryService.UpdateCategory(id, category, User);
                 return Ok(BaseResponse<string>.OkResponse("Category update successfully."));
             }
             catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
@@ -106,11 +113,12 @@ namespace XuongMayBE.API.Controllers
 
         //api remove category by way update status
         [HttpDelete("delete-category-by-update-status")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> DeleteCategoryByUpdateStatus(string id)
         {
             try
             {
-                await _categoryService.DeleteCategoryByUpdateStatus(id);
+                await _categoryService.DeleteCategoryByUpdateStatus(id, User);
                 return Ok(BaseResponse<string>.OkResponse("Category delete successfully."));
             }
             catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
@@ -125,6 +133,7 @@ namespace XuongMayBE.API.Controllers
 
         //api remove category by id
         [HttpDelete("delete-category/{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> DeleteCategory(string id)
         {
             try
