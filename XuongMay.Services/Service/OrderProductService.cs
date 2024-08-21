@@ -13,12 +13,14 @@ namespace XuongMay.Services.Service
     public class OrderProductService : IOrderProductService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IGenericRepository<Orders> _orderRepository;        
+        private readonly IGenericRepository<Orders> _orderRepository;
+        private readonly IGenericRepository<Products> _productRepository;
 
         public OrderProductService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
             _orderRepository = _unitOfWork.GetRepository<Orders>();
+            _productRepository = _unitOfWork.GetRepository<Products>();
         }
 
         #region Get all Order
@@ -32,7 +34,7 @@ namespace XuongMay.Services.Service
         #region Get an order by Id
         public async Task<Orders?> GetByIdAsync(string id)
         {
-            Orders order= await _orderRepository.GetByIdAsync(id);
+            Orders order = await _orderRepository.GetByIdAsync(id);
             if (!order.IsDelete)
             {
                 return order;
@@ -46,33 +48,60 @@ namespace XuongMay.Services.Service
 
         #region Create order
         public async Task CreateOrder(OrderModelView order, string userName)
-        {            
+        {
+            if (string.IsNullOrWhiteSpace(order.ProductId))
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Please fill product id");
+            }
+            var product = _productRepository.GetById(order?.ProductId);
+
+            if (product == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Not found the product");
+            }
+
             Orders _order = new Orders
-            {                
+            {
                 ProductId = order.ProductId,
                 OrdersCode = order.OrdersCode,
                 Quantity = order.Quantity,
-                TotalPrice = order.TotalPrice,
+                TotalPrice = order.Quantity * product.ProductPrice,
                 CreatedBy = userName,
-                CreatedTime=CoreHelper.SystemTimeNow
+                CreatedTime = CoreHelper.SystemTimeNow
             };
-            await _orderRepository.InsertAsync(_order);
+            Task createOrder = _orderRepository.InsertAsync(_order);
+            if (!createOrder.IsCompleted)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Create fail");
+            }
             await _orderRepository.SaveAsync();
         }
         #endregion
 
         #region Update order
-        public async Task UpdateAsync(string orderId,OrderModelView order,string userName)
+        public async Task UpdateAsync(string orderId, OrderModelView order, string userName)
         {
-            Orders _order = await _orderRepository.GetByIdAsync(orderId);
-            if(_order != null) 
+            if (string.IsNullOrWhiteSpace(order.ProductId))
             {
-                await _orderRepository.UpdateAsync(_order);                
+                throw new BaseException.ErrorException(400, "Bad Request", "Please fill product id");
+            }
+            var product = _productRepository.GetById(order?.ProductId);
+
+            if (product == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Not found the product");
+            }
+
+            Orders _order = await _orderRepository.GetByIdAsync(orderId);
+
+            if (_order != null)
+            {
+                await _orderRepository.UpdateAsync(_order);
                 _order.ProductId = order.ProductId;
                 _order.OrdersCode = order.OrdersCode;
                 _order.Quantity = order.Quantity;
-                _order.TotalPrice = order.TotalPrice;
-                _order.LastUpdatedBy=userName;
+                _order.TotalPrice = order.Quantity * product.ProductPrice;
+                _order.LastUpdatedBy = userName;
                 await _orderRepository.SaveAsync();
             }
             else
