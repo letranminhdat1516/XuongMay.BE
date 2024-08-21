@@ -71,6 +71,7 @@ namespace XuongMay.Services.Service
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Product");
             }
+
             if (products.IsDelete)
             {
                 throw new BaseException.BadRequestException("Bad Request", "Product has been deleted ");

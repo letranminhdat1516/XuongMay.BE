@@ -27,6 +27,14 @@ namespace XuongMay.Services.Service
         #region Get All Conveyor
         public Task<BasePaginatedList<Conveyor>> GetAllConveyorPaging(int index, int pageSize)
         {
+            if (index < 0 || pageSize < 0)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Index, PageSize phải lớn hơn 1");
+            }
+            if (index > pageSize)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Index phải nhỏ hơn PageSize");
+            }
             var conveyors = _conveyorRepository.Entities.Where(con => !con.IsDelete);
             return _conveyorRepository.GetPagging(conveyors, index, pageSize);
         }
@@ -35,6 +43,14 @@ namespace XuongMay.Services.Service
         #region Get Conveyor By Filter
         public Task<BasePaginatedList<Conveyor>> GetConveyorByFilter(string keyword, int index, int pageSize)
         {
+            if (index < 0 || pageSize < 0)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Index, PageSize phải lớn hơn 1");
+            }
+            if (index > pageSize)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Index phải nhỏ hơn PageSize");
+            }
             var conveyors = _conveyorRepository
                 .Entities
                 .Where(con =>
@@ -89,6 +105,12 @@ namespace XuongMay.Services.Service
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy băng chuyền");
             }
+
+            if (conveyor.IsDelete)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Băng chuyền này đã bị xóa không thể xóa");
+            }
+
             if (conveyor.IsWorking)
             {
                 throw new BaseException.ErrorException(400, "Bad Request", "Không thể xóa! Băng chuyền đang hoạt động");

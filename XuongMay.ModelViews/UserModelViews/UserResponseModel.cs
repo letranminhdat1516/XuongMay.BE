@@ -9,7 +9,6 @@
         public string Email { get; set; }
         public string FullName { get; set; }
         public string PhoneNumber { get; set; }
-        public string Role { get; set; }
         public DateTimeOffset CreatedTime { get; set; }
         public DateTimeOffset LastUpdatedTime { get; set; }
         public bool IsDelete { get; set; }
@@ -18,6 +17,7 @@
         public string? DeletedBy { get; set; }
         public string? LastUpdatedBy { get; set; }
         public string? CreatedBy { get; set; }
+        public string? Role { get; set; }
 
     }
 }

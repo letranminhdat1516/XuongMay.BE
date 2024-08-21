@@ -89,9 +89,21 @@ namespace XuongMayBE.API
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("EditPolicy", policy =>
+                options.AddPolicy("ManageConveyorPolicy", policy =>
                 {
-                    policy.RequireClaim("Permission","CanEdit");
+                    policy.RequireRole("ConveyorManager");
+                    policy.RequireClaim("Permission", "CanEdit");
+                    policy.RequireClaim("Permission", "ViewConveyor");
+                });
+                options.AddPolicy("EditConveyorPolicy", policy =>
+                {
+                    policy.RequireRole("ConveyorManager");
+                    policy.RequireClaim("Permission", "CanEdit");
+                });
+                options.AddPolicy("ViewConveyorPolicy", policy =>
+                {
+                    policy.RequireRole("ConveyorManager");
+                    policy.RequireClaim("Permission", "ViewConveyor");
                 });
             });
 
