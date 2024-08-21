@@ -12,5 +12,8 @@ namespace XuongMay.ModelViews.UserModelViews
         public string? PhoneNumber { get; set; }
         public string? UserName { get; set; }
         public string FullName { get; set; }
+        public string? BankAccount { get; set; }
+        public string? BankAccountName { get; set; }
+        public string? Bank { get; set; }
     }
 }
