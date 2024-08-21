@@ -6,6 +6,7 @@ using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
 using XuongMay.Core.Base;
 using XuongMay.Core.Constants;
+using XuongMay.ModelViews.RoleModelView;
 using XuongMay.ModelViews.UserModelViews;
 
 namespace XuongMayBE.API.Controllers
@@ -35,7 +36,7 @@ namespace XuongMayBE.API.Controllers
 
         /// <summary>
         /// Xem chi tiết thông tin người dùng.
-        /// Chỉ dành cho Admin và ConveyorManager.
+        /// dành cho Admin và ConveyorManager.
         /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(string id)
@@ -79,41 +80,111 @@ namespace XuongMayBE.API.Controllers
             }
             return Ok(new { message = "Xóa người dùng thành công" });
         }
+        /// <summary>
+        /// Xem tất cả các role.
+        /// Chỉ dành cho Admin.
+        /// </summary>
+        [HttpGet("roles")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        public async Task<IActionResult> GetRoles()
+        {
+            var roles = await _userService.GetRolesAsync();
+            return Ok(roles);
+        }
+
+        /// <summary>
+        /// Tạo Role.
+        /// Chỉ dành cho Admin.
+        /// </summary>
         [HttpPost("roles")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
-        public async Task<IActionResult> CreateRole([FromBody] ApplicationRole role)
+        public async Task<IActionResult> CreateRole([FromBody] RoleCreateModelView model)
         {
-            if (role == null)
+            if (model == null)
             {
                 return BadRequest("Role không được rỗng.");
             }
 
-            await _userService.CreateRole(role, User);
+            await _userService.CreateRole(model, User);
 
             return Ok("Tạo vai trò thành công.");
         }
 
-        [HttpPut("roles/{Id}")]
+        /// <summary>
+        /// Sửa Role.
+        /// Chỉ dành cho Admin.
+        /// </summary>
+        [HttpPut("roles/{roleId}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
-        public async Task<IActionResult> UpdateRole(Guid roleId, [FromBody] ApplicationRole role)
+        public async Task<IActionResult> UpdateRole(Guid roleId, [FromBody] RoleUpdateModelView model)
         {
-            if (role == null || role.Id != roleId)
+            if (model == null)
             {
                 return BadRequest("Thông tin vai trò không hợp lệ.");
             }
 
-            await _userService.UpdateRole(role, User);
+            // Giả sử model.Id đã đúng và khớp với roleId trong URL
+            await _userService.UpdateRole(roleId, model, User);
 
             return Ok("Cập nhật vai trò thành công.");
         }
 
-        [HttpDelete("roles/{Id}")]
+
+        /// <summary>
+        /// Xoá Role (chuyển trạng thái sang đã xóa).
+        /// Chỉ dành cho Admin.
+        /// </summary>
+        [HttpDelete("roles/{roleId}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> DeleteRole(Guid roleId)
         {
             await _userService.DeleteRole(roleId, User);
-
             return Ok("Xóa vai trò thành công.");
+        }
+        /// <summary>
+        /// Đặt vai trò cho người dùng.
+        /// Chỉ dành cho Admin.
+        /// </summary>
+        /// <param name="model">Thông tin về vai trò và người dùng.</param>
+        /// <returns>Trả về kết quả của việc đặt vai trò.</returns>
+        [HttpPut("roles/set")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        public async Task<IActionResult> SetRole([FromBody] RoleSetModelView model)
+        {
+            if (model == null || string.IsNullOrWhiteSpace(model.RoleName) || model.UserId == Guid.Empty)
+            {
+                return BadRequest("Thông tin vai trò hoặc người dùng không hợp lệ.");
+            }
+
+            try
+            {
+                await _userService.SetRoleAsync(model.UserId, model.RoleName, User);
+
+                return Ok("Đặt vai trò thành công.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Lỗi khi đặt vai trò: {ex.Message}");
+            }
+        }
+        /// <summary>
+        /// Cập nhật vai trò cho người dùng thành not avaiable.
+        /// Chỉ dành cho Admin.
+        /// </summary>
+        /// <returns>Trả về kết quả của việc xoá vai trò.</returns>
+        [HttpDelete("roles/delete-role-user")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        public async Task<IActionResult> DeleteUserRole(Guid userId)
+        {
+            try
+            {
+                await _userService.DeleteUserRole(userId, User);
+                return Ok("Xóa vai trò thành công.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Lỗi khi xóa vai trò: {ex.Message}");
+            }
         }
 
     }

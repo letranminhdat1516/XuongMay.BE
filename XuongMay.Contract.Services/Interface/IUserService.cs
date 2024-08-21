@@ -2,7 +2,7 @@
 using XuongMay.Core;
 using XuongMay.ModelViews.AuthModelViews;
 using XuongMay.ModelViews.UserModelViews;
-using XuongMay.Contract.Repositories.Entity;
+using XuongMay.ModelViews.RoleModelView;
 
 namespace XuongMay.Contract.Services.Interface
 {
@@ -41,16 +41,28 @@ namespace XuongMay.Contract.Services.Interface
         /// <summary>
         /// Tạo một vai trò mới.
         /// </summary>
-        Task CreateRole(ApplicationRole role, ClaimsPrincipal user);
+        Task CreateRole(RoleCreateModelView model, ClaimsPrincipal user);
 
         /// <summary>
         /// Cập nhật một vai trò hiện có.
         /// </summary>
-        Task UpdateRole(ApplicationRole role, ClaimsPrincipal user);
+        Task UpdateRole(Guid roleId, RoleUpdateModelView model, ClaimsPrincipal user);
 
         /// <summary>
         /// Xóa một vai trò theo ID.
         /// </summary>
         Task DeleteRole(Guid roleId, ClaimsPrincipal user);
+        /// <summary>
+        /// Cập nhật người dùng theo vai trò.
+        /// </summary>
+        Task SetRoleAsync(Guid userId, string roleName, ClaimsPrincipal adminUser);
+        /// <summary>
+        /// Lấy tất cả vai trò trong hệ thống.
+        /// </summary
+        Task<List<RoleResponseModel>> GetRolesAsync();
+        /// <summary>
+        /// Xoá vai trò của người dùng.
+        /// </summary
+        Task DeleteUserRole(Guid userId, ClaimsPrincipal adminUser);
     }
 }

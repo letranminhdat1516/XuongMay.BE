@@ -17,8 +17,8 @@ namespace XuongMay.Contract.Services.Interface
         //R get order with a specific id
         public Task<Orders?> GetByIdAsync(string id);
         //CUD
-        public Task CreateOrder(OrderModelView order);
-        public Task UpdateAsync(string id,OrderModelView obj);
+        public Task CreateOrder(OrderModelView order,string userName);
+        public Task UpdateAsync(string id,OrderModelView obj, string userName);
         public Task DeleteAsync(string id,string name);
     }
 }

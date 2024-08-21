@@ -7,6 +7,7 @@ using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.AuthModelViews;
+using XuongMay.ModelViews.RoleModelView;
 using XuongMay.ModelViews.UserModelViews;
 using XuongMay.Repositories.Entity;
 using XuongMayBE.API.Config;
@@ -51,12 +52,21 @@ namespace XuongMay.Services.Service
             }
 
             var user = await _userRepo.Entities
-                .Include(u => u.UserInfo) 
-                .FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId) && !u.UserInfo.IsDelete);
+                .Include(u => u.UserInfo)
+                .FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId));
+            // Lấy vai trò của người dùng
+            var roleId = _userRoleRepo.Entities
+                .Where(ur => ur.UserId == user.Id)
+                .Select(ur => ur.RoleId)
+                .FirstOrDefault();
 
-            if (user == null)
+            string? roleName = null;
+            if (roleId != default)
             {
-                return null;
+                roleName = await _roleRepo.Entities
+                    .Where(r => r.Id == roleId)
+                    .Select(r => r.Name)
+                    .FirstOrDefaultAsync();
             }
 
             return new UserResponseModel
@@ -64,17 +74,18 @@ namespace XuongMay.Services.Service
                 Id = user.Id.ToString(),
                 UserName = user.UserName,
                 Email = user.Email,
-                FullName = user.UserInfo?.FullName,
+                FullName = user.UserInfo?.FullName ?? string.Empty,
                 PhoneNumber = user.PhoneNumber,
                 CreatedTime = user.CreatedTime,
                 LastUpdatedTime = user.LastUpdatedTime,
-                DeletedTime = user.DeletedTime,  
-                CreatedBy = user.CreatedBy,  
-                LastUpdatedBy = user.LastUpdatedBy,  
-                DeletedBy = user.DeletedBy,  
+                DeletedTime = user.DeletedTime,
+                CreatedBy = user.CreatedBy,
+                LastUpdatedBy = user.LastUpdatedBy,
+                DeletedBy = user.DeletedBy,
                 IsDelete = user.UserInfo?.IsDelete ?? false,
                 EmailConfirmed = user.EmailConfirmed,
-                PhoneNumberConfirmed = user.PhoneNumberConfirmed
+                PhoneNumberConfirmed = user.PhoneNumberConfirmed,
+                Role = roleName
             };
         }
 
@@ -82,43 +93,72 @@ namespace XuongMay.Services.Service
         // Retrieves a paginated list of all users
         public async Task<BasePaginatedList<UserResponseModel>> GetAllAsync(int pageIndex, int pageSize)
         {
-            var userRepo = _unitOfWork.GetRepository<ApplicationUser>();
-
-            // Lấy danh sách người dùng không bị xóa
-            var query = userRepo.Entities
-                .Include(u => u.UserInfo) 
-                .Where(u => !u.UserInfo.IsDelete)
+            // Truy vấn danh sách người dùng, bao gồm cả những người dùng không có UserInfo
+            var query = _userRepo.Entities
+                .Include(u => u.UserInfo)
+                .Where(u => u.UserInfo == null || !u.UserInfo.IsDelete)
                 .OrderBy(u => u.CreatedTime);
 
+            // Đếm tổng số phần tử
             var totalItems = await query.CountAsync();
 
-            // Sử dụng phân trang
+            // Kiểm tra nếu pageIndex và pageSize hợp lệ
+            if (pageIndex < 1 || pageSize < 1)
+            {
+                throw new ArgumentException("PageIndex và PageSize phải lớn hơn 0.");
+            }
+
+            // Lấy danh sách người dùng với phân trang
             var users = await query
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
-                .Select(u => new UserResponseModel
-                {
-                    Id = u.Id.ToString(),
-                    UserName = u.UserName,
-                    Email = u.Email,
-                    FullName = u.UserInfo != null ? u.UserInfo.FullName : string.Empty,// sử dụng ?.taok
-                    PhoneNumber = u.PhoneNumber,
-                    CreatedTime = u.CreatedTime,
-                    LastUpdatedTime = u.LastUpdatedTime,
-                    DeletedTime = u.DeletedTime,
-                    CreatedBy = u.CreatedBy,
-                    LastUpdatedBy = u.LastUpdatedBy,
-                    DeletedBy = u.DeletedBy,
-                    IsDelete = u.UserInfo != null && u.UserInfo.IsDelete,
-                    EmailConfirmed = u.EmailConfirmed,
-                    PhoneNumberConfirmed = u.PhoneNumberConfirmed
-                })
                 .ToListAsync();
 
-            return new BasePaginatedList<UserResponseModel>(users, totalItems, pageIndex, pageSize);
+            var userResponseModels = new List<UserResponseModel>();
+
+            foreach (var user in users)
+            {
+                // Lấy role ID từ bảng ApplicationUserRoles
+                var roleId = await _userRoleRepo.Entities
+                    .Where(ur => ur.UserId == user.Id)
+                    .Select(ur => ur.RoleId)
+                    .FirstOrDefaultAsync();
+
+                // Lấy tên role từ bảng ApplicationRole
+                string? roleName = null;
+                if (roleId != default)
+                {
+                    roleName = await _roleRepo.Entities
+                        .Where(r => r.Id == roleId)
+                        .Select(r => r.Name)
+                        .FirstOrDefaultAsync();
+                }
+
+                var userResponseModel = new UserResponseModel
+                {
+                    Id = user.Id.ToString(),
+                    UserName = user.UserName,
+                    Email = user.Email,
+                    FullName = user.UserInfo != null ? user.UserInfo.FullName : string.Empty,
+                    PhoneNumber = user.PhoneNumber,
+                    CreatedTime = user.CreatedTime,
+                    LastUpdatedTime = user.LastUpdatedTime,
+                    DeletedTime = user.DeletedTime,
+                    CreatedBy = user.CreatedBy,
+                    LastUpdatedBy = user.LastUpdatedBy,
+                    DeletedBy = user.DeletedBy,
+                    IsDelete = user.UserInfo != null && user.UserInfo.IsDelete,
+                    EmailConfirmed = user.EmailConfirmed,
+                    PhoneNumberConfirmed = user.PhoneNumberConfirmed,
+                    Role = roleName 
+                };
+
+                userResponseModels.Add(userResponseModel);
+            }
+
+            return new BasePaginatedList<UserResponseModel>(userResponseModels, totalItems, pageIndex, pageSize);
         }
 
-        // Registers a new user with the system
         // Registers a new user with the system
         public async Task<string?> RegisterAsync(RegisterModelView model, ClaimsPrincipal userClaims)
         {
@@ -157,6 +197,7 @@ namespace XuongMay.Services.Service
                 PasswordHash = hashedPassword,
                 Email = model.Email,
                 PhoneNumber = model.PhoneNumber,
+                UserInfoId = userInfo.Id,
                 CreatedBy = createdBy,
                 LastUpdatedBy = createdBy,
                 CreatedTime = CoreHelper.SystemTimeNow,
@@ -227,13 +268,16 @@ namespace XuongMay.Services.Service
             await _userClaimsRepo.InsertAsync(userClaim);
             await _unitOfWork.SaveAsync();
 
-            //  lưu Access Token
+            // Tạo và lưu Access Token
             string accessToken = TokenHelper.GenerateJwtToken(
                 user,
                 role.Name,
+                new List<string> { "ViewConveyor" },
                 _configuration["Jwt:Key"],
                 _configuration["Jwt:Issuer"],
-                _configuration["Jwt:Audience"]);
+                _configuration["Jwt:Audience"] 
+            );
+
 
             var accessTokenRecord = new ApplicationUserTokens
             {
@@ -244,14 +288,13 @@ namespace XuongMay.Services.Service
                 CreatedTime = CoreHelper.SystemTimeNow,
                 LastUpdatedTime = CoreHelper.SystemTimeNow
             };
+            accessTokenRecord.SetAuditFields(userClaims);
             await _userTokensRepo.InsertAsync(accessTokenRecord);
             await _unitOfWork.SaveAsync();
 
             return null;
         }
 
-
-        // Logs in the user and returns a JWT token
         // Logs in the user and returns a JWT token
         public async Task<string?> LoginAsync(LoginModelView model)
         {
@@ -291,10 +334,25 @@ namespace XuongMay.Services.Service
                 return "User role not found";
             }
 
+            // Get permissions from UserClaims and RoleClaims
+            var userClaims = await _userClaimsRepo.Entities
+                .Where(uc => uc.UserId == user.Id && uc.ClaimType == "Permission")
+                .Select(uc => uc.ClaimValue)
+                .ToListAsync();
+
+            var roleClaims = await _roleClaimsRepo.Entities
+                .Where(rc => rc.RoleId == roleId && rc.ClaimType == "Permission")
+                .Select(rc => rc.ClaimValue)
+                .ToListAsync();
+
+            // Combine both UserClaims and RoleClaims
+            var permissions = userClaims.Union(roleClaims).ToList();
+
             // Gen Access Token
             string accessToken = TokenHelper.GenerateJwtToken(
                 user,
                 role,
+                permissions,
                 _configuration["Jwt:Key"],
                 _configuration["Jwt:Issuer"],
                 _configuration["Jwt:Audience"]);
@@ -302,6 +360,7 @@ namespace XuongMay.Services.Service
             // Check and save Access Token
             var userToken = await _userTokensRepo.Entities
                 .FirstOrDefaultAsync(t => t.UserId == user.Id && t.LoginProvider == "Local");
+           
 
             if (userToken == null)
             {
@@ -315,6 +374,7 @@ namespace XuongMay.Services.Service
                     CreatedTime = CoreHelper.SystemTimeNow,
                     LastUpdatedTime = CoreHelper.SystemTimeNow
                 };
+             
                 await _userTokensRepo.InsertAsync(userToken);
             }
             else
@@ -338,11 +398,13 @@ namespace XuongMay.Services.Service
                 return "User not found";
             }
 
-            // Cập nhật các trường cần thiết
             user.Email = updateModel.Email;
             user.PhoneNumber = updateModel.PhoneNumber;
             user.UserInfo.FullName = updateModel.FullName;
-            user.LastUpdatedBy = userClaims.Identity?.Name;// sử dụng user claim để lấy tên ra từ token
+            user.UserInfo.BankAccount = updateModel.BankAccount;
+            user.UserInfo.BankAccountName = updateModel.BankAccountName;
+            user.UserInfo.Bank = updateModel.Bank;
+            user.LastUpdatedBy = userClaims.Identity?.Name; // sử dụng user claim để lấy tên ra từ token
             user.LastUpdatedTime = CoreHelper.SystemTimeNow;
 
             await _userRepo.UpdateAsync(user);
@@ -350,7 +412,8 @@ namespace XuongMay.Services.Service
 
             return null;
         }
-        // Deletes (soft deletes) a user by setting IsDelete to true
+
+        // Deletes a user by setting IsDelete to true
         public async Task<string?> DeleteUserAsync(string id, ClaimsPrincipal userClaims)
         {
             // Kiểm tra xem GUID có hợp lệ không
@@ -385,30 +448,179 @@ namespace XuongMay.Services.Service
         }
 
         // Create role
-        public async Task CreateRole(ApplicationRole role, ClaimsPrincipal user)
+        public async Task CreateRole(RoleCreateModelView model, ClaimsPrincipal user)
         {
+            var role = new ApplicationRole
+            {
+                Name = model.Name,
+                NormalizedName = model.NormalizedName,
+                ConcurrencyStamp = Guid.NewGuid().ToString()
+            };
+
             role.SetAuditFields(user);
             await _roleRepo.InsertAsync(role);
             await _unitOfWork.SaveAsync();
         }
+
         // Update role
-        public async Task UpdateRole(ApplicationRole role, ClaimsPrincipal user)
+        public async Task UpdateRole(Guid roleId, RoleUpdateModelView model, ClaimsPrincipal user)
         {
+            var role = await _roleRepo.GetByIdAsync(roleId);
+
+            if (role == null)
+            {
+                throw new Exception($"Role ID '{roleId}' không tồn tại.");
+            }
+
+            role.Name = model.Name;
+            role.NormalizedName = model.NormalizedName;
+
             role.SetAuditFields(user);
             await _roleRepo.UpdateAsync(role);
             await _unitOfWork.SaveAsync();
         }
-        // DeleteRole
+        // Get role
+        public async Task<List<RoleResponseModel>> GetRolesAsync()
+        {
+            var roles = await _roleRepo.Entities
+                .Where(r => r.DeletedTime == null) // delete time null là chưa xoá 
+                .Select(r => new RoleResponseModel
+                {
+                    Id = r.Id,
+                    Name = r.Name,
+                    NormalizedName = r.NormalizedName,
+                    CreatedBy = r.CreatedBy,
+                    CreatedTime = r.CreatedTime,
+                    LastUpdatedBy = r.LastUpdatedBy,
+                    LastUpdatedTime = r.LastUpdatedTime
+                })
+                .ToListAsync();
+
+            return roles;
+        }
+        // Delete role
         public async Task DeleteRole(Guid roleId, ClaimsPrincipal user)
         {
             var role = await _roleRepo.GetByIdAsync(roleId);
             if (role != null)
             {
                 role.SetDeletedFields(user);
-                await _roleRepo.DeleteAsync(role);
+               
+
+                await _roleRepo.UpdateAsync(role); 
                 await _unitOfWork.SaveAsync();
             }
         }
+        // Set role user
+        public async Task SetRoleAsync(Guid userId, string roleName, ClaimsPrincipal adminUser)
+        {
+            // Tìm vai trò theo tên
+            var role = await _roleRepo.Entities
+                .FirstOrDefaultAsync(r => r.NormalizedName == roleName.ToUpper());
 
+            if (role == null)
+            {
+                throw new KeyNotFoundException($"Vai trò '{roleName}' không tồn tại.");
+            }
+
+            // Tìm người dùng theo ID
+            var user = await _userRepo.Entities
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                throw new KeyNotFoundException($"Người dùng với ID '{userId}' không tồn tại.");
+            }
+
+            // Xóa các vai trò cũ của người dùng
+            var existingUserRoles = await _userRoleRepo.Entities
+                .Where(ur => ur.UserId == userId)
+                .ToListAsync();
+
+            _userRoleRepo.DeleteAsync(existingUserRoles);
+
+            // Gán vai trò mới cho người dùng
+            var userRole = new ApplicationUserRoles
+            {
+                UserId = userId,
+                RoleId = role.Id
+            };
+
+            userRole.SetAuditFields(adminUser);
+            await _userRoleRepo.InsertAsync(userRole);
+
+            // Lưu thay đổi
+            await _unitOfWork.SaveAsync();
+        }
+
+        // Delete role user by setting role is "not avaiable"
+        public async Task DeleteUserRole(Guid userId, ClaimsPrincipal adminUser)
+        {
+            // Tìm người dùng theo ID
+            var user = await _userRepo.Entities
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                throw new KeyNotFoundException($"Người dùng với ID '{userId}' không tồn tại.");
+            }
+
+            // Xóa các vai trò cũ của người dùng
+            var existingUserRoles = await _userRoleRepo.Entities
+                .Where(ur => ur.UserId == userId)
+                .ToListAsync();
+
+            if (existingUserRoles.Any())
+            {
+                foreach (var existingUserRole in existingUserRoles)
+                {
+                  
+                    existingUserRole.SetDeletedFields(adminUser);
+
+                    // Lưu thay đổi cập nhật
+                    await _userRoleRepo.UpdateAsync(existingUserRole);
+                }
+            }
+
+            var notAvailableRole = await EnsureNotAvailableRoleExistsAsync();
+
+            // Gán vai trò "Not Available" cho người dùng
+            var userRole = new ApplicationUserRoles
+            {
+                UserId = userId,
+                RoleId = notAvailableRole.Id
+            };
+
+            userRole.SetAuditFields(adminUser);
+            await _userRoleRepo.InsertAsync(userRole);
+
+            // Lưu thay đổi
+            await _unitOfWork.SaveAsync();
+        }
+
+
+        // Create role "not avaiable"
+        private async Task<ApplicationRole> EnsureNotAvailableRoleExistsAsync()
+        {
+            var notAvailableRole = await _roleRepo.Entities
+                .FirstOrDefaultAsync(r => r.NormalizedName == "NOT AVAILABLE");
+
+            if (notAvailableRole == null)
+            {
+                notAvailableRole = new ApplicationRole
+                {
+                    Name = "Not Available",
+                    NormalizedName = "NOT AVAILABLE",
+                    ConcurrencyStamp = Guid.NewGuid().ToString(),
+                    CreatedTime = CoreHelper.SystemTimeNow,
+                    LastUpdatedTime = CoreHelper.SystemTimeNow
+                };
+
+                await _roleRepo.InsertAsync(notAvailableRole);
+                await _unitOfWork.SaveAsync();
+            }
+
+            return notAvailableRole;
+        }
     }
 }
