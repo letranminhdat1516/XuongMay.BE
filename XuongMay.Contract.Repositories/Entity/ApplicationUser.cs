@@ -15,7 +15,7 @@ namespace XuongMay.Repositories.Entity
         public DateTimeOffset CreatedTime { get; set; }
         public DateTimeOffset LastUpdatedTime { get; set; }
         public DateTimeOffset? DeletedTime { get; set; }
-      
+        public string UserInfoId { get; set; }
 
         public ApplicationUser()
         {
