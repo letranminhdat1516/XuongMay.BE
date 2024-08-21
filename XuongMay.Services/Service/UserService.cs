@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Data;
 using System.Security.Claims;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
+using XuongMay.Core.Base;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.AuthModelViews;
 using XuongMay.ModelViews.RoleModelView;
@@ -89,7 +91,6 @@ namespace XuongMay.Services.Service
             };
         }
 
-
         // Retrieves a paginated list of all users
         public async Task<BasePaginatedList<UserResponseModel>> GetAllAsync(int pageIndex, int pageSize)
         {
@@ -150,7 +151,7 @@ namespace XuongMay.Services.Service
                     IsDelete = user.UserInfo != null && user.UserInfo.IsDelete,
                     EmailConfirmed = user.EmailConfirmed,
                     PhoneNumberConfirmed = user.PhoneNumberConfirmed,
-                    Role = roleName 
+                    Role = roleName
                 };
 
                 userResponseModels.Add(userResponseModel);
@@ -202,7 +203,6 @@ namespace XuongMay.Services.Service
                 LastUpdatedBy = createdBy,
                 CreatedTime = CoreHelper.SystemTimeNow,
                 LastUpdatedTime = CoreHelper.SystemTimeNow,
-                Id = Guid.NewGuid() // Sử dụng Guid mới
             };
 
             // Lưu người dùng mới vào bảng ApplicationUser
@@ -217,7 +217,7 @@ namespace XuongMay.Services.Service
                 {
                     Name = "ConveyorManager",
                     NormalizedName = "CONVEYORMANAGER",
-                    ConcurrencyStamp = Guid.NewGuid().ToString(),
+                    ConcurrencyStamp = Guid.NewGuid().ToString("N"),
                     CreatedTime = CoreHelper.SystemTimeNow,
                     LastUpdatedTime = CoreHelper.SystemTimeNow,
                     CreatedBy = createdBy,
@@ -259,7 +259,7 @@ namespace XuongMay.Services.Service
             {
                 UserId = user.Id,
                 ClaimType = "Permission",
-                ClaimValue = "ViewConveyor",
+                ClaimValue = "CanView",
                 CreatedBy = createdBy,
                 LastUpdatedBy = createdBy,
                 CreatedTime = CoreHelper.SystemTimeNow,
@@ -272,10 +272,10 @@ namespace XuongMay.Services.Service
             string accessToken = TokenHelper.GenerateJwtToken(
                 user,
                 role.Name,
-                new List<string> { "ViewConveyor" },
+                new List<string> { "CanView" },
                 _configuration["Jwt:Key"],
                 _configuration["Jwt:Issuer"],
-                _configuration["Jwt:Audience"] 
+                _configuration["Jwt:Audience"]
             );
 
 
@@ -340,13 +340,14 @@ namespace XuongMay.Services.Service
                 .Select(uc => uc.ClaimValue)
                 .ToListAsync();
 
-            var roleClaims = await _roleClaimsRepo.Entities
-                .Where(rc => rc.RoleId == roleId && rc.ClaimType == "Permission")
-                .Select(rc => rc.ClaimValue)
-                .ToListAsync();
+            //var roleClaims = await _roleClaimsRepo.Entities
+            //    .Where(rc => rc.RoleId == roleId && rc.ClaimType == "Permission")
+            //    .Select(rc => rc.ClaimValue)
+            //    .ToListAsync();
 
             // Combine both UserClaims and RoleClaims
-            var permissions = userClaims.Union(roleClaims).ToList();
+            var permissions = userClaims.ToList();
+            //var permissions = userClaims.Union(roleClaims).ToList();
 
             // Gen Access Token
             string accessToken = TokenHelper.GenerateJwtToken(
@@ -360,7 +361,7 @@ namespace XuongMay.Services.Service
             // Check and save Access Token
             var userToken = await _userTokensRepo.Entities
                 .FirstOrDefaultAsync(t => t.UserId == user.Id && t.LoginProvider == "Local");
-           
+
 
             if (userToken == null)
             {
@@ -374,7 +375,7 @@ namespace XuongMay.Services.Service
                     CreatedTime = CoreHelper.SystemTimeNow,
                     LastUpdatedTime = CoreHelper.SystemTimeNow
                 };
-             
+
                 await _userTokensRepo.InsertAsync(userToken);
             }
             else
@@ -454,7 +455,7 @@ namespace XuongMay.Services.Service
             {
                 Name = model.Name,
                 NormalizedName = model.NormalizedName,
-                ConcurrencyStamp = Guid.NewGuid().ToString()
+                ConcurrencyStamp = Guid.NewGuid().ToString("N")
             };
 
             role.SetAuditFields(user);
@@ -505,9 +506,9 @@ namespace XuongMay.Services.Service
             if (role != null)
             {
                 role.SetDeletedFields(user);
-               
 
-                await _roleRepo.UpdateAsync(role); 
+
+                await _roleRepo.UpdateAsync(role);
                 await _unitOfWork.SaveAsync();
             }
         }
@@ -574,7 +575,7 @@ namespace XuongMay.Services.Service
             {
                 foreach (var existingUserRole in existingUserRoles)
                 {
-                  
+
                     existingUserRole.SetDeletedFields(adminUser);
 
                     // Lưu thay đổi cập nhật
@@ -598,7 +599,6 @@ namespace XuongMay.Services.Service
             await _unitOfWork.SaveAsync();
         }
 
-
         // Create role "not avaiable"
         private async Task<ApplicationRole> EnsureNotAvailableRoleExistsAsync()
         {
@@ -611,7 +611,7 @@ namespace XuongMay.Services.Service
                 {
                     Name = "Not Available",
                     NormalizedName = "NOT AVAILABLE",
-                    ConcurrencyStamp = Guid.NewGuid().ToString(),
+                    ConcurrencyStamp = Guid.NewGuid().ToString("N"),
                     CreatedTime = CoreHelper.SystemTimeNow,
                     LastUpdatedTime = CoreHelper.SystemTimeNow
                 };
@@ -621,6 +621,416 @@ namespace XuongMay.Services.Service
             }
 
             return notAvailableRole;
+        }
+
+        public async Task CreateDefaultAdmin()
+        {
+            // Kiểm tra người dùng đã tồn tại chưa
+            var existingUser = _userRepo.Entities.FirstOrDefault(u => u.UserName == "Admin");
+            if (existingUser != null)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "User đã tồn tại");
+            }
+
+            // Hash mật khẩu người dùng
+            var hashedPassword = HashHelper.ComputeSha256Hash("12345");
+
+            // Lấy thông tin người tạo từ claims
+            string? createdBy = "Admin";
+
+            // Tạo thông tin người dùng mới
+            var userInfo = new UserInfo
+            {
+                FullName = "Nguyen Van A",
+                CreatedBy = createdBy,
+                LastUpdatedBy = createdBy,
+                CreatedTime = CoreHelper.SystemTimeNow,
+                LastUpdatedTime = CoreHelper.SystemTimeNow
+            };
+
+            // Lưu thông tin người dùng vào bảng UserInfos
+            await _userInfoRepo.InsertAsync(userInfo);
+            await _unitOfWork.SaveAsync();
+
+            // Tạo người dùng mới
+            var user = new ApplicationUser
+            {
+                UserName = "admin",
+                Password = "12345",
+                PasswordHash = hashedPassword,
+                Email = "admin@gmail.com",
+                PhoneNumber = "092837271321",
+                UserInfoId = userInfo.Id,
+                CreatedBy = createdBy,
+                LastUpdatedBy = createdBy,
+                CreatedTime = CoreHelper.SystemTimeNow,
+                LastUpdatedTime = CoreHelper.SystemTimeNow,
+            };
+
+            // Lưu người dùng mới vào bảng ApplicationUser
+            await _userRepo.InsertAsync(user);
+            await _unitOfWork.SaveAsync();
+
+            // Tạo vai trò mặc định nếu chưa tồn tại
+            var role = _roleRepo.Entities.FirstOrDefault(r => r.Name == "Admin");
+            if (role == null)
+            {
+                role = new ApplicationRole
+                {
+                    Name = "Admin",
+                    NormalizedName = "ADMIN",
+                    ConcurrencyStamp = Guid.NewGuid().ToString("N"),
+                    CreatedTime = CoreHelper.SystemTimeNow,
+                    LastUpdatedTime = CoreHelper.SystemTimeNow,
+                    CreatedBy = createdBy,
+                    LastUpdatedBy = createdBy
+                };
+                await _roleRepo.InsertAsync(role);
+                await _unitOfWork.SaveAsync();
+
+                // Tạo RoleClaim mặc định cho vai trò này (Admin)
+                var manageConveyorClaim = new ApplicationRoleClaims
+                {
+                    RoleId = role.Id,
+                    ClaimType = "Permission",
+                    ClaimValue = "Admin",
+                    CreatedBy = createdBy,
+                    LastUpdatedBy = createdBy,
+                    CreatedTime = CoreHelper.SystemTimeNow,
+                    LastUpdatedTime = CoreHelper.SystemTimeNow
+                };
+                await _roleClaimsRepo.InsertAsync(manageConveyorClaim);
+                await _unitOfWork.SaveAsync();
+            }
+
+            // Gán vai trò cho người dùng
+            var userRole = new ApplicationUserRoles
+            {
+                UserId = user.Id,
+                RoleId = role.Id,
+                CreatedTime = CoreHelper.SystemTimeNow,
+                LastUpdatedTime = CoreHelper.SystemTimeNow,
+                CreatedBy = createdBy,
+                LastUpdatedBy = createdBy
+            };
+            await _userRoleRepo.InsertAsync(userRole);
+            await _unitOfWork.SaveAsync();
+
+            // Thêm UserClaim mặc định (Insert)
+            var userClaim = new ApplicationUserClaims
+            {
+                UserId = user.Id,
+                ClaimType = "Permission",
+                ClaimValue = "CanInsert",
+                CreatedBy = createdBy,
+                LastUpdatedBy = createdBy,
+                CreatedTime = CoreHelper.SystemTimeNow,
+                LastUpdatedTime = CoreHelper.SystemTimeNow
+            };
+            await _userClaimsRepo.InsertAsync(userClaim);
+            await _unitOfWork.SaveAsync();
+
+            // Tạo và lưu Access Token
+            string accessToken = TokenHelper.GenerateJwtToken(
+                user,
+                role.Name,
+                new List<string> { "CanInsert" },
+                _configuration["Jwt:Key"],
+                _configuration["Jwt:Issuer"],
+                _configuration["Jwt:Audience"]
+            );
+
+            var accessTokenRecord = new ApplicationUserTokens
+            {
+                UserId = user.Id,
+                LoginProvider = "Local",
+                Name = "AccessToken",
+                Value = accessToken,
+                CreatedTime = CoreHelper.SystemTimeNow,
+                LastUpdatedTime = CoreHelper.SystemTimeNow
+            };
+            await _userTokensRepo.InsertAsync(accessTokenRecord);
+            await _unitOfWork.SaveAsync();
+        }
+
+        public async Task SetUserCanEdit(string id, string createBy)
+        {
+            var user = await _userRepo.GetByIdAsync(Guid.Parse(id));
+            if (user == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy user");
+            }
+            var existsUserClaim = await _userClaimsRepo.Entities.Where(userClaim =>
+                                    userClaim.ClaimType == "Permission"
+                                    && userClaim.ClaimValue == "CanEdit"
+                                    && userClaim.UserId == user.Id)
+                                        .SingleOrDefaultAsync();
+            if (existsUserClaim != null)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "User này đã được cấp quyền này");
+            }
+
+            var userClaim = new ApplicationUserClaims
+            {
+                UserId = user.Id,
+                ClaimType = "Permission",
+                ClaimValue = "CanEdit",
+                CreatedBy = createBy,
+            };
+            await _userClaimsRepo.InsertAsync(userClaim);
+            await _unitOfWork.SaveAsync();
+
+            var userClaims = await _userClaimsRepo.Entities
+                .Where(uc => uc.UserId == user.Id && uc.ClaimType == "Permission")
+                .Select(uc => uc.ClaimValue)
+                .ToListAsync();
+
+            var roleId = await _userRoleRepo.Entities
+                .Where(ur => ur.UserId == Guid.Parse(id))
+                .Select(ur => ur.RoleId)
+                .SingleOrDefaultAsync();
+
+            if (roleId == null)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Không tìm thấy vai trò hiện tại");
+            }
+            var roleName = await _roleRepo.Entities
+                .Where(r => r.Id == roleId).
+                Select(r => r.Name)
+                .SingleOrDefaultAsync();
+
+            var permissions = userClaims.ToList();
+
+            string accessToken = TokenHelper.GenerateJwtToken(
+                user,
+                roleName ?? "",
+                permissions,
+                _configuration["Jwt:Key"],
+                _configuration["Jwt:Issuer"],
+                _configuration["Jwt:Audience"]
+            );
+
+            var accessTokenRecord = new ApplicationUserTokens
+            {
+                UserId = user.Id,
+                LoginProvider = "Local",
+                Name = "AccessToken",
+                Value = accessToken,
+                CreatedTime = CoreHelper.SystemTimeNow,
+                LastUpdatedTime = CoreHelper.SystemTimeNow
+            };
+            await _userTokensRepo.UpdateAsync(accessTokenRecord);
+            await _unitOfWork.SaveAsync();
+        }
+
+        public async Task SetUserCanDelete(string id, string createBy)
+        {
+            var user = await _userRepo.GetByIdAsync(Guid.Parse(id));
+            if (user == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy user");
+            }
+            var existsUserClaim = await _userClaimsRepo.Entities.Where(userClaim =>
+                                    userClaim.ClaimType == "Permission"
+                                    && userClaim.ClaimValue == "CanDelete"
+                                    && userClaim.UserId == user.Id)
+                                        .SingleOrDefaultAsync();
+            if (existsUserClaim != null)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "User này đã được cấp quyền này");
+            }
+
+            var userClaim = new ApplicationUserClaims
+            {
+                UserId = user.Id,
+                ClaimType = "Permission",
+                ClaimValue = "CanDelete",
+                CreatedBy = createBy,
+            };
+            await _userClaimsRepo.InsertAsync(userClaim);
+            await _unitOfWork.SaveAsync();
+
+            var userClaims = await _userClaimsRepo.Entities
+                .Where(uc => uc.UserId == user.Id && uc.ClaimType == "Permission")
+                .Select(uc => uc.ClaimValue)
+                .ToListAsync();
+
+            var roleId = await _userRoleRepo.Entities
+                .Where(ur => ur.UserId == Guid.Parse(id))
+                .Select(ur => ur.RoleId)
+                .SingleOrDefaultAsync();
+
+            if (roleId == null)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Không tìm thấy vai trò hiện tại");
+            }
+            var roleName = await _roleRepo.Entities
+                .Where(r => r.Id == roleId).
+                Select(r => r.Name)
+                .SingleOrDefaultAsync();
+
+            var permissions = userClaims.ToList();
+
+            string accessToken = TokenHelper.GenerateJwtToken(
+                user,
+                roleName ?? "",
+                permissions,
+                _configuration["Jwt:Key"],
+                _configuration["Jwt:Issuer"],
+                _configuration["Jwt:Audience"]
+            );
+
+            var accessTokenRecord = new ApplicationUserTokens
+            {
+                UserId = user.Id,
+                LoginProvider = "Local",
+                Name = "AccessToken",
+                Value = accessToken,
+                CreatedTime = CoreHelper.SystemTimeNow,
+                LastUpdatedTime = CoreHelper.SystemTimeNow
+            };
+            await _userTokensRepo.UpdateAsync(accessTokenRecord);
+            await _unitOfWork.SaveAsync();
+        }
+
+        public async Task SetUserCanView(string id, string createBy)
+        {
+            var user = await _userRepo.GetByIdAsync(Guid.Parse(id));
+            if (user == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy user");
+            }
+            var existsUserClaim = await _userClaimsRepo.Entities.Where(userClaim =>
+                                    userClaim.ClaimType == "Permission"
+                                    && userClaim.ClaimValue == "CanView"
+                                    && userClaim.UserId == user.Id)
+                                        .SingleOrDefaultAsync();
+            if (existsUserClaim != null)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "User này đã được cấp quyền này");
+            }
+
+            var userClaim = new ApplicationUserClaims
+            {
+                UserId = user.Id,
+                ClaimType = "Permission",
+                ClaimValue = "CanView",
+                CreatedBy = createBy,
+            };
+            await _userClaimsRepo.InsertAsync(userClaim);
+            await _unitOfWork.SaveAsync();
+
+            var userClaims = await _userClaimsRepo.Entities
+                .Where(uc => uc.UserId == user.Id && uc.ClaimType == "Permission")
+                .Select(uc => uc.ClaimValue)
+                .ToListAsync();
+
+            var roleId = await _userRoleRepo.Entities
+                .Where(ur => ur.UserId == Guid.Parse(id))
+                .Select(ur => ur.RoleId)
+                .SingleOrDefaultAsync();
+
+            if (roleId == null)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Không tìm thấy vai trò hiện tại");
+            }
+            var roleName = await _roleRepo.Entities
+                .Where(r => r.Id == roleId).
+                Select(r => r.Name)
+                .SingleOrDefaultAsync();
+
+            var permissions = userClaims.ToList();
+
+            string accessToken = TokenHelper.GenerateJwtToken(
+                user,
+                roleName ?? "",
+                permissions,
+                _configuration["Jwt:Key"],
+                _configuration["Jwt:Issuer"],
+                _configuration["Jwt:Audience"]
+            );
+
+            var accessTokenRecord = new ApplicationUserTokens
+            {
+                UserId = user.Id,
+                LoginProvider = "Local",
+                Name = "AccessToken",
+                Value = accessToken,
+                CreatedTime = CoreHelper.SystemTimeNow,
+                LastUpdatedTime = CoreHelper.SystemTimeNow
+            };
+            await _userTokensRepo.UpdateAsync(accessTokenRecord);
+            await _unitOfWork.SaveAsync();
+        }
+
+        public async Task SetUserCanInsert(string id, string createBy)
+        {
+            var user = await _userRepo.GetByIdAsync(Guid.Parse(id));
+            if (user == null)
+            {
+                throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy user");
+            }
+            var existsUserClaim = await _userClaimsRepo.Entities.Where(userClaim =>
+                                    userClaim.ClaimType == "Permission"
+                                    && userClaim.ClaimValue == "CanInsert"
+                                    && userClaim.UserId == user.Id)
+                                        .SingleOrDefaultAsync();
+            if (existsUserClaim != null)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "User này đã được cấp quyền này");
+            }
+
+            var userClaim = new ApplicationUserClaims
+            {
+                UserId = user.Id,
+                ClaimType = "Permission",
+                ClaimValue = "CanInsert",
+                CreatedBy = createBy,
+            };
+            await _userClaimsRepo.InsertAsync(userClaim);
+            await _unitOfWork.SaveAsync();
+
+            var userClaims = await _userClaimsRepo.Entities
+                .Where(uc => uc.UserId == user.Id && uc.ClaimType == "Permission")
+                .Select(uc => uc.ClaimValue)
+                .ToListAsync();
+
+            var roleId = await _userRoleRepo.Entities
+                .Where(ur => ur.UserId == Guid.Parse(id))
+                .Select(ur => ur.RoleId)
+                .SingleOrDefaultAsync();
+
+            if (roleId == null)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Không tìm thấy vai trò hiện tại");
+            }
+            var roleName = await _roleRepo.Entities
+                .Where(r => r.Id == roleId).
+                Select(r => r.Name)
+                .SingleOrDefaultAsync();
+
+            var permissions = userClaims.ToList();
+
+            string accessToken = TokenHelper.GenerateJwtToken(
+                user,
+                roleName ?? "",
+                permissions,
+                _configuration["Jwt:Key"],
+                _configuration["Jwt:Issuer"],
+                _configuration["Jwt:Audience"]
+            );
+
+            var accessTokenRecord = new ApplicationUserTokens
+            {
+                UserId = user.Id,
+                LoginProvider = "Local",
+                Name = "AccessToken",
+                Value = accessToken,
+                CreatedTime = CoreHelper.SystemTimeNow,
+                LastUpdatedTime = CoreHelper.SystemTimeNow
+            };
+            await _userTokensRepo.UpdateAsync(accessTokenRecord);
+            await _unitOfWork.SaveAsync();
         }
     }
 }

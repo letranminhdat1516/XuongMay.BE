@@ -248,7 +248,7 @@ namespace XuongMay.Services.Service
         // So sánh các dữ liệu
 
         #region Compare the quantity of order task and order
-        public async Task<bool> IsOrderTaskQuantityOutOfOrderRange(string orderId, int taskQuantity)
+        private async Task<bool> IsOrderTaskQuantityOutOfOrderRange(string orderId, int taskQuantity)
         {
             bool result = false;
             int orderQuantity = await GetOrderQuantity(orderId);
@@ -260,7 +260,7 @@ namespace XuongMay.Services.Service
         #endregion
 
         #region Compare conveyor max quantity and order task
-        public async Task<bool> IsOrderTaskQuantityOutOfConveyorRange(string conveyorId, int taskQuantity)
+        private async Task<bool> IsOrderTaskQuantityOutOfConveyorRange(string conveyorId, int taskQuantity)
         {
             bool result = false;
             int maxConveyor = await GetMaxConveyor(conveyorId);
@@ -272,7 +272,7 @@ namespace XuongMay.Services.Service
         #endregion
 
         #region Total Quantity OrderTask Of Order
-        public Task<int> TotalQuantityOrderTaskOfOrder(object orderId)
+        private Task<int> TotalQuantityOrderTaskOfOrder(object orderId)
         {
             int totalQuantity = _orderTaskRepository.Entities.Where(ordTask => ordTask.OrderId.Equals(orderId) && ordTask.DeletedTime == null).Sum(ord => ord.Quantity);
             return Task.FromResult(totalQuantity);
@@ -280,7 +280,7 @@ namespace XuongMay.Services.Service
         #endregion
 
         #region Get Order Quantity
-        public async Task<int> GetOrderQuantity(object id)
+        private async Task<int> GetOrderQuantity(object id)
         {
             var order = await _orderRepository.GetByIdAsync(id);
             if (order == null)
@@ -293,7 +293,7 @@ namespace XuongMay.Services.Service
         #endregion
 
         #region Get Max Conveyor
-        public async Task<int> GetMaxConveyor(object conveyorId)
+        private async Task<int> GetMaxConveyor(object conveyorId)
         {
             var conveyor = await _conveyorRepository.GetByIdAsync(conveyorId);
 
@@ -308,7 +308,7 @@ namespace XuongMay.Services.Service
         // Kiểm tra dữ liệu đầu vào
 
         #region Validate request order task data
-        public async Task ValidateRequestData(Conveyor conveyor, OrderTask obj)
+        private async Task ValidateRequestData(Conveyor conveyor, OrderTask obj)
         {
             bool checkOrder = await IsOrderTaskQuantityOutOfOrderRange(obj.OrderId, obj.Quantity);
             bool checkConveyor = await IsOrderTaskQuantityOutOfConveyorRange(obj.ConveyorId, obj.Quantity);

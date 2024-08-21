@@ -52,6 +52,12 @@ namespace XuongMayBE.API
              .AddDefaultTokenProviders();
         }
 
+        public static void SeedAdminAsync(this IServiceProvider services)
+        {
+            var userManage = services.GetRequiredService<IUserService>();
+            userManage.CreateDefaultAdmin();
+        }
+
         public static void AddSwaggerGen(this IServiceCollection services)
         {
             services.AddSwaggerGen(option =>
@@ -82,28 +88,45 @@ namespace XuongMayBE.API
                 });
             });
         }
-
         public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
             var key = Encoding.ASCII.GetBytes(configuration["Jwt:Key"]);
 
             services.AddAuthorization(options =>
             {
+                // Mange conveyor policy
                 options.AddPolicy("ManageConveyorPolicy", policy =>
                 {
                     policy.RequireRole("ConveyorManager");
-                    policy.RequireClaim("Permission", "CanEdit");
-                    policy.RequireClaim("Permission", "ViewConveyor");
                 });
-                options.AddPolicy("EditConveyorPolicy", policy =>
+                // Admin policy
+                options.AddPolicy("AdminPolicy", policy =>
                 {
-                    policy.RequireRole("ConveyorManager");
+                    policy.RequireRole("Admin");
+                });
+
+                options.AddPolicy("ViewPolicy", policy =>
+                {
+                    policy.RequireClaim("Permission", "CanView");
+                });
+                options.AddPolicy("InsertPolicy", policy =>
+                {
+                    policy.RequireClaim("Permission", "CanInsert");
+                });
+                options.AddPolicy("EditPolicy", policy =>
+                {
                     policy.RequireClaim("Permission", "CanEdit");
                 });
-                options.AddPolicy("ViewConveyorPolicy", policy =>
+                options.AddPolicy("DeletePolicy", policy =>
                 {
-                    policy.RequireRole("ConveyorManager");
-                    policy.RequireClaim("Permission", "ViewConveyor");
+                    policy.RequireClaim("Permission", "CanDelete");
+                });
+                options.AddPolicy("FullPermissionPolicy", policy =>
+                {
+                    policy.RequireClaim("Permission", "CanView");
+                    policy.RequireClaim("Permission", "CanInsert");
+                    policy.RequireClaim("Permission", "CanEdit");
+                    policy.RequireClaim("Permission", "CanDelete");
                 });
             });
 

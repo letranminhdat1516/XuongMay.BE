@@ -18,6 +18,7 @@ builder.Services.AddConfig(builder.Configuration);
 
 var app = builder.Build();
 
+app.Services.CreateScope().ServiceProvider.SeedAdminAsync();
 
 // Configure the HTTP request pipeline.
 app.UseSwagger();
