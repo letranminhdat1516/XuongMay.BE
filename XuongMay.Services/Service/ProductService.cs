@@ -67,7 +67,7 @@ namespace XuongMay.Services.Service
         public async Task DeleteProductByUpdateStatus(string id, ClaimsPrincipal userClaim)
         {
             Products products = await _unitOfWork.GetRepository<Products>().GetByIdAsync(id);
-            if(products == null)
+            if (products == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Product");
             }
@@ -116,27 +116,25 @@ namespace XuongMay.Services.Service
             productTemp.ProductName = products.ProductName;
             productTemp.ProductDescription = products.ProductDescription;
             productTemp.ProductPrice = products.ProductPrice;
-            productTemp.IsWorking = products.IsWorking;
-            productTemp.LastUpdatedBy = userClaim.Identity?.Name; 
+            productTemp.LastUpdatedBy = userClaim.Identity?.Name;
             productTemp.LastUpdatedTime = CoreHelper.SystemTimeNow;
             await _unitOfWork.GetRepository<Products>().UpdateAsync(productTemp);
             await _unitOfWork.GetRepository<Products>().SaveAsync();
         }
 
         //update status Isworking of product
-        public async Task UpdateProductStatus(string id, bool status, ClaimsPrincipal userClaim)
-        {
-            Products productTemp = await _unitOfWork.GetRepository<Products>().GetByIdAsync(id);
-            if (productTemp == null)
-            {
-                throw new BaseException.ErrorException(404, "Not Found", "Not Found Product.");
-            }
-            productTemp.IsWorking = status;
-            productTemp.LastUpdatedBy = userClaim?.Identity?.Name;
-            productTemp.LastUpdatedTime = CoreHelper.SystemTimeNow;
-            await _unitOfWork.GetRepository<Products>().UpdateAsync(productTemp);
-            await _unitOfWork.GetRepository<Products>().SaveAsync();
-        }
+        //public async Task UpdateProductStatus(string id, bool status, ClaimsPrincipal userClaim)
+        //{
+        //    Products productTemp = await _unitOfWork.GetRepository<Products>().GetByIdAsync(id);
+        //    if (productTemp == null)
+        //    {
+        //        throw new BaseException.ErrorException(404, "Not Found", "Not Found Product.");
+        //    }
+        //    productTemp.LastUpdatedBy = userClaim?.Identity?.Name;
+        //    productTemp.LastUpdatedTime = CoreHelper.SystemTimeNow;
+        //    await _unitOfWork.GetRepository<Products>().UpdateAsync(productTemp);
+        //    await _unitOfWork.GetRepository<Products>().SaveAsync();
+        //}
     }
 }
 

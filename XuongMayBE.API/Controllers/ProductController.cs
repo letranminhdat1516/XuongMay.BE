@@ -120,24 +120,24 @@ namespace XuongMayBE.API.Controllers
         }
 
         //api update status IsWorking of product
-        [HttpPut("update-status")]
-        //[Authorize(Roles = "Admin,Users")]
-        public async Task<IActionResult> UpdateStatus(string id, bool status)
-        {
-            try
-            {
-                await _productService.UpdateProductStatus(id, status,User);
-                return Ok(BaseResponse<string>.OkResponse("Update status of product successfully."));
-            }
-            catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
-            {
-                return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
-            }
-            catch (BaseException.BadRequestException ex)
-            {
-                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
-            }
-        }
+        //[HttpPut("update-status")]
+        ////[Authorize(Roles = "Admin,Users")]
+        //public async Task<IActionResult> UpdateStatus(string id, bool status)
+        //{
+        //    try
+        //    {
+        //        await _productService.UpdateProductStatus(id, status,User);
+        //        return Ok(BaseResponse<string>.OkResponse("Update status of product successfully."));
+        //    }
+        //    catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
+        //    {
+        //        return NotFound(BaseResponse<string>.NotFoundResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+        //    }
+        //    catch (BaseException.BadRequestException ex)
+        //    {
+        //        return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+        //    }
+        //}
 
         //api delete product
         [HttpDelete("delete-product/{id}")]

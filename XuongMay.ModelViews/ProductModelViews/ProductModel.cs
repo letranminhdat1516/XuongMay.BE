@@ -12,7 +12,6 @@ namespace XuongMay.ModelViews.ProductModelViews
         public string ProductName { get; set; } = string.Empty;
         public string ProductDescription { get; set; } = string.Empty;
         public decimal ProductPrice { get; set; }
-        public bool IsWorking { get; set; } = false;
         public string? CategoryId { get; set; }
 
     }
