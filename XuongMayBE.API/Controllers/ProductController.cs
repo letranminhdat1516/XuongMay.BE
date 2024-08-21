@@ -1,14 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
 using XuongMay.Core.Base;
 using XuongMay.ModelViews.ProductModelViews;
-using XuongMay.Services.Service;
 
 namespace XuongMayBE.API.Controllers
 {
@@ -26,7 +23,7 @@ namespace XuongMayBE.API.Controllers
 
         //api get all product
         [HttpGet("get-all-produtc")]
-        //[Authorize(Roles = "ConveyorManager")]
+        [Authorize(Policy = "ViewPolicy")]
         public async Task<IActionResult> GetAllProduct(int index = 1, int pageSize = 9)
         {
             BasePaginatedList<Products> products = await _productService.GetAllProductPaging(index, pageSize);
@@ -39,7 +36,7 @@ namespace XuongMayBE.API.Controllers
 
         //api get product with filter
         [HttpGet("get-product-with-filter")]
-        //[Authorize(Roles = "Admin,Users")]
+        [Authorize(Policy = "ViewPolicy")]
         public async Task<IActionResult> GetProductWithFilter(string keyWord = "", int index = 1, int pageSize = 9)
         {
             try
@@ -59,7 +56,7 @@ namespace XuongMayBE.API.Controllers
 
         //api get product by id
         [HttpGet("get-product-by-id/{id}")]
-        //[Authorize(Roles = "Admin,Users")]
+        [Authorize(Policy = "ViewPolicy")]
         public async Task<IActionResult> GetProduct(string id)
         {
             try
@@ -83,7 +80,7 @@ namespace XuongMayBE.API.Controllers
 
         //api insert product
         [HttpPost("insert-product")]
-        //[Authorize(Roles = "Admin,Users")]
+        [Authorize(Policy = "InsertPolicy")]
         public async Task<IActionResult> InsertProduct([FromBody] ProductModel product)
         {
             try
@@ -101,7 +98,7 @@ namespace XuongMayBE.API.Controllers
 
         //api update product
         [HttpPut("update-product/{id}")]
-        //[Authorize(Roles = "Admin,Users")]
+        [Authorize(Policy = "EditPolicy")]
         public async Task<IActionResult> UpdateProduct(string id, [FromBody] ProductModel product)
         {
             try
@@ -141,7 +138,7 @@ namespace XuongMayBE.API.Controllers
 
         //api delete product
         [HttpDelete("delete-product/{id}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [Authorize(Policy = "DeletePolicy")]
         public async Task<IActionResult> DeleteProduct(string id)
         {
             try
@@ -161,7 +158,7 @@ namespace XuongMayBE.API.Controllers
 
         //api remove product by way update status
         [HttpDelete("delete-product-by-update-status")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [Authorize(Policy = "DeletePolicy")]
         public async Task<IActionResult> DeleteProductByUpdateStatus(string id)
         {
             try

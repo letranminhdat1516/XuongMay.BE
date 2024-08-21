@@ -69,7 +69,7 @@ namespace XuongMay.Services.Service
 
             if (!categoryTemp.IsDelete)
             {
-                throw new BaseException.BadRequestException("Bad Request", "Cannot delete active categories");
+                throw new BaseException.BadRequestException("Bad Request", "This category is already deleted");
             }
             //Check the category included in the product
             bool hasProducts = await _unitOfWork.GetRepository<Products>().Entities

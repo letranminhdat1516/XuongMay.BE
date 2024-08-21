@@ -1,4 +1,5 @@
-﻿using XuongMay.Contract.Repositories.Entity;
+﻿using Microsoft.EntityFrameworkCore;
+using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
@@ -64,6 +65,16 @@ namespace XuongMay.Services.Service
         #region Insert Convenyor
         public async Task InsertNewConveyor(ConveyorRequestModel obj)
         {
+            var exist = _conveyorRepository
+                .Entities
+                .Where(con => !con.IsDelete)
+                .AsEnumerable()
+                .OrderBy(con => con.ConveyorName, StringComparer.OrdinalIgnoreCase)
+                .Any(con => con.ConveyorName.Equals(obj.ConveyorName, StringComparison.OrdinalIgnoreCase));
+            if (exist)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Tên băng chuyền đã tồn tại");
+            }
             Conveyor conveyor = new Conveyor();
             conveyor.ConveyorName = obj.ConveyorName;
             conveyor.MaxQuantity = obj.MaxQuantity;
@@ -77,6 +88,7 @@ namespace XuongMay.Services.Service
         public async Task UpdateConveyor(ConveyorUpdateModel obj)
         {
             var conveyor = _conveyorRepository.GetById(obj.ConveyorId);
+
             if (conveyor == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy băng chuyền");
@@ -85,6 +97,16 @@ namespace XuongMay.Services.Service
             if (conveyor.IsWorking)
             {
                 throw new BaseException.ErrorException(400, "Bad Request", "Không thể cập nhật! Băng chuyền đang hoạt động");
+            }
+
+            var exist = await _conveyorRepository
+                .Entities
+                .Where(con => con.IsDelete == false)
+                .AnyAsync(con => con.ConveyorName.Equals(obj.ConveyorName, StringComparison.OrdinalIgnoreCase));
+
+            if (exist)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Tên băng chuyền đã tồn tại");
             }
 
             conveyor.ConveyorName = obj.ConveyorName;

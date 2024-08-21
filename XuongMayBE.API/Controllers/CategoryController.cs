@@ -11,7 +11,7 @@ namespace XuongMayBE.API.Controllers
 {
     [Route("api/category")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin, ConveyorManager")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
@@ -22,6 +22,7 @@ namespace XuongMayBE.API.Controllers
 
         //api get all category
         [HttpGet("get-all-category")]
+        [Authorize(Policy = "ViewPolicy")]
         public async Task<IActionResult> GetAllCategory(int index = 1, int pageSize = 9)
         {
             BasePaginatedList<Category> categories = await _categoryService.GetAllCategoryPaging(index, pageSize);
@@ -34,6 +35,7 @@ namespace XuongMayBE.API.Controllers
 
         //api get category with filter
         [HttpGet("get-category-with-filter")]
+        [Authorize(Policy = "ViewPolicy")]
         public async Task<IActionResult> GetCategoryWithFilter(string keyWord = "", int index = 1, int pageSize = 9)
         {
             try
@@ -53,6 +55,7 @@ namespace XuongMayBE.API.Controllers
 
         //api get category by id
         [HttpGet("get-category-by-id/{id}")]
+        [Authorize(Policy = "ViewPolicy")]
         public async Task<IActionResult> GetCategoryById(string id)
         {
             try
@@ -76,6 +79,7 @@ namespace XuongMayBE.API.Controllers
 
         //api insert category
         [HttpPost("insert-category")]
+        [Authorize(Policy = "InsertPolicy")]
         public async Task<IActionResult> InsertCategory([FromBody] CategoryModel category)
         {
             try
@@ -93,6 +97,7 @@ namespace XuongMayBE.API.Controllers
 
         //api update category
         [HttpPut("update-category/{id}")]
+        [Authorize(Policy = "EditPolicy")]
         public async Task<IActionResult> UpdateCategory(string id, [FromBody] CategoryModel category)
         {
             try
@@ -113,6 +118,7 @@ namespace XuongMayBE.API.Controllers
 
         //api remove category by way update status
         [HttpDelete("delete-category-by-update-status")]
+        [Authorize(Policy = "DeletePolicy")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> DeleteCategoryByUpdateStatus(string id)
         {
@@ -133,6 +139,7 @@ namespace XuongMayBE.API.Controllers
 
         //api remove category by id
         [HttpDelete("delete-category/{id}")]
+        [Authorize(Policy = "DeletePolicy")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> DeleteCategory(string id)
         {
