@@ -61,7 +61,6 @@ namespace XuongMayBE.API.Controllers
         #region Thêm mới nhiệm vụ cho băng chuyền
         [HttpPost()]
         [SwaggerOperation(Summary = "Thêm mới nhiệm vụ cho băng chuyền")]
-        [Authorize(Policy = "EditConveyorPolicy")]
         public async Task<IActionResult> InsertTask(OrderTaskRequestModel request)
         {
             try

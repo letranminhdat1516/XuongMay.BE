@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Security.Claims;
@@ -14,6 +13,7 @@ namespace XuongMayBE.API.Controllers
 {
     [Route("api/order")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
     public class OrderProductControllercs : ControllerBase
     {
         private readonly IOrderProductService _orderProductService;
@@ -24,7 +24,6 @@ namespace XuongMayBE.API.Controllers
 
         #region Get all the order
         [HttpGet("all-order")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         [SwaggerOperation(Summary = "Lấy tất cả order")]
         public async Task<IActionResult> GetAllOrder(int index = 1, int pageSize = 10)
         {
@@ -35,7 +34,6 @@ namespace XuongMayBE.API.Controllers
 
         #region Get a specific order base on ID
         [HttpGet("/{id}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         [SwaggerOperation(Summary = "Lấy order dựa theo orderId")]
         public async Task<Orders?> GetOrderById([FromRoute] string id)
         {
@@ -45,32 +43,30 @@ namespace XuongMayBE.API.Controllers
 
         #region Create a new order
         [HttpPost("/orders")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         [SwaggerOperation(Summary = "Tạo 1 order mới")]
         public async Task<IActionResult> CreateOrder([FromBody] OrderModelView orderModelView)
         {
-            var userName = User.FindFirst(ClaimTypes.Name)?.Value;
-            Task createOrder = _orderProductService.CreateOrder(orderModelView,userName);
-            await createOrder;
-            if (createOrder.IsCompleted == true)
+            try
             {
+                var userName = User.FindFirst(ClaimTypes.Name)?.Value;
+                Task createOrder = _orderProductService.CreateOrder(orderModelView, userName);
+                await createOrder;
                 return Ok(BaseResponse<Orders>.OkResponse("Create successfully!"));
             }
-            else
+            catch (BaseException.ErrorException ex)
             {
-                return Ok(BaseResponse<Orders>.OkResponse("Create fail"));
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
             }
         }
         #endregion
 
         #region Change detail of an exting order
         [HttpPut("/update-order/{id}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ConveyorManager")]
         [SwaggerOperation(Summary = "Chỉnh sửa 1 order dựa theo Id")]
         public async Task<IActionResult> UpdateOrder(string id, OrderModelView orderModelView)
         {
             var userName = User.FindFirst(ClaimTypes.Name)?.Value;
-            Task updateOrder = _orderProductService.UpdateAsync(id,orderModelView,userName);
+            Task updateOrder = _orderProductService.UpdateAsync(id, orderModelView, userName);
             await updateOrder;
             if (updateOrder.IsCompleted == true)
             {
@@ -85,12 +81,12 @@ namespace XuongMayBE.API.Controllers
 
         #region Delete an order(change the IsDelete to true)
         [HttpDelete("/delete/{id}")]
-        [Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme,Roles ="Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [SwaggerOperation(Summary = "Xoá 1 order")]
         public async Task<IActionResult> DeleteOrder(string id)
         {
             var deleterName = User.FindFirst(ClaimTypes.Name)?.Value;
-            Task orderDeleted = _orderProductService.DeleteAsync(id,deleterName);
+            Task orderDeleted = _orderProductService.DeleteAsync(id, deleterName);
             await orderDeleted;
             ;
             if (orderDeleted.IsCompleted == true)
