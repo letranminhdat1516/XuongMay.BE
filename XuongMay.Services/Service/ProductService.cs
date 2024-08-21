@@ -54,6 +54,10 @@ namespace XuongMay.Services.Service
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Product.");
             }
+            if (!productsTemp.IsDelete)
+            {
+                throw new BaseException.BadRequestException("Bad Request", "Active products cannot be deleted!!!");
+            }
             await _unitOfWork.GetRepository<Products>().DeleteAsync(id);
             await _unitOfWork.GetRepository<Products>().SaveAsync();
 
@@ -70,7 +74,7 @@ namespace XuongMay.Services.Service
 
             if (products.IsDelete)
             {
-                throw new BaseException.BadRequestException("Bad Request", "Cannot delete active products");
+                throw new BaseException.BadRequestException("Bad Request", "Product has been deleted ");
             }
             products.IsDelete = true;
             products.DeletedBy = userClaim.Identity?.Name;
@@ -120,18 +124,18 @@ namespace XuongMay.Services.Service
         }
 
         //update status Isworking of product
-        public async Task UpdateProductStatus(string id, ClaimsPrincipal userClaim)
-        {
-            Products productTemp = await _unitOfWork.GetRepository<Products>().GetByIdAsync(id);
-            if (productTemp == null)
-            {
-                throw new BaseException.ErrorException(404, "Not Found", "Not Found Product.");
-            }
-            productTemp.LastUpdatedBy = userClaim?.Identity?.Name;
-            productTemp.LastUpdatedTime = CoreHelper.SystemTimeNow;
-            await _unitOfWork.GetRepository<Products>().UpdateAsync(productTemp);
-            await _unitOfWork.GetRepository<Products>().SaveAsync();
-        }
+        //public async Task UpdateProductStatus(string id, bool status, ClaimsPrincipal userClaim)
+        //{
+        //    Products productTemp = await _unitOfWork.GetRepository<Products>().GetByIdAsync(id);
+        //    if (productTemp == null)
+        //    {
+        //        throw new BaseException.ErrorException(404, "Not Found", "Not Found Product.");
+        //    }
+        //    productTemp.LastUpdatedBy = userClaim?.Identity?.Name;
+        //    productTemp.LastUpdatedTime = CoreHelper.SystemTimeNow;
+        //    await _unitOfWork.GetRepository<Products>().UpdateAsync(productTemp);
+        //    await _unitOfWork.GetRepository<Products>().SaveAsync();
+        //}
     }
 }
 

@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
@@ -73,7 +74,13 @@ namespace XuongMay.Services.Service
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");
             }
-            if (categoryTemp.IsDelete)
+            if (!categoryTemp.IsDelete)
+            {
+                throw new BaseException.BadRequestException("Bad Request", "Cannot delete active categories");
+            }
+            bool hasProducts = await _unitOfWork.GetRepository<Products>().Entities
+                                     .AnyAsync(p => p.CategoryId.Equals(categoryTemp.Id));
+            if (hasProducts)
             {
                 throw new BaseException.BadRequestException("Bad Request", "Cannot delete active categories");
             }
@@ -89,8 +96,10 @@ namespace XuongMay.Services.Service
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");
             }
-            if (categoryTemp.IsDelete)
-            {
+
+            bool hasProducts = await _unitOfWork.GetRepository<Products>().Entities
+                                     .AnyAsync(p => p.CategoryId.Equals(categoryTemp.Id));
+            if(hasProducts){
                 throw new BaseException.BadRequestException("Bad Request", "Cannot delete active categories");
             }
             categoryTemp.IsDelete = true;
