@@ -74,9 +74,9 @@ namespace XuongMay.Services.Service
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");
             }
-            if (!categoryTemp.IsDelete)
+            if (categoryTemp.IsDelete)
             {
-                throw new BaseException.BadRequestException("Bad Request", "Cannot delete active categories");
+                throw new BaseException.BadRequestException("Bad Request", "This category is already deleted");
             }
             bool hasProducts = await _unitOfWork.GetRepository<Products>().Entities
                                      .AnyAsync(p => p.CategoryId.Equals(categoryTemp.Id));

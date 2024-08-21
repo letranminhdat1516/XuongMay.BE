@@ -23,21 +23,21 @@ namespace XuongMayBE.API.Controllers
         }
 
         #region Lấy danh sách các băng chuyền
-        [HttpGet()]
-        [SwaggerOperation(Summary = "Lấy danh sách các băng chuyền có phân trang")]
-        [Authorize(Policy = "ViewPolicy")]
-        public async Task<IActionResult> GetConveyorPaging(int index = 1, int pageSize = 10)
-        {
-            try
-            {
-                var conveyors = await _conveyorService.GetAllConveyorPaging(index, pageSize);
-                return Ok(BaseResponse<BasePaginatedList<Conveyor>>.OkResponse(conveyors));
-            }
-            catch (BaseException.ErrorException ex)
-            {
-                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
-            }
-        }
+        //[HttpGet()]
+        //[SwaggerOperation(Summary = "Lấy danh sách các băng chuyền có phân trang")]
+        //[Authorize(Policy = "ViewPolicy")]
+        //public async Task<IActionResult> GetConveyorPaging(int index = 1, int pageSize = 10)
+        //{
+        //    try
+        //    {
+        //        var conveyors = await _conveyorService.GetAllConveyorPaging(index, pageSize);
+        //        return Ok(BaseResponse<BasePaginatedList<Conveyor>>.OkResponse(conveyors));
+        //    }
+        //    catch (BaseException.ErrorException ex)
+        //    {
+        //        return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+        //    }
+        //}
         #endregion
 
         #region Lấy thông tin băng chuyền theo filter
