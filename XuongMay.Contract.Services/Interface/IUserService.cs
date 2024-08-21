@@ -64,5 +64,16 @@ namespace XuongMay.Contract.Services.Interface
         /// Xoá vai trò của người dùng.
         /// </summary
         Task DeleteUserRole(Guid userId, ClaimsPrincipal adminUser);
+        /// <summary>
+        /// Tạo admin mặc định
+        /// </summary
+        Task CreateDefaultAdmin();
+        /// <summary>
+        /// Phân quyền cho user
+        /// </summary
+        Task SetUserCanInsert(string id, string createBy);
+        Task SetUserCanEdit(string id, string createBy);
+        Task SetUserCanDelete(string id, string createBy);
+        Task SetUserCanView(string id, string createBy);
     }
 }

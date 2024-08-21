@@ -13,7 +13,7 @@ namespace XuongMayBE.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin, ConveyorManager")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -187,5 +187,64 @@ namespace XuongMayBE.API.Controllers
             }
         }
 
+        [HttpPost("assignRoleViewToUser")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin", Policy = "InsertPolicy")]
+        public async Task<IActionResult> AssignRoleViewToUser(string id)
+        {
+            try
+            {
+                await _userService.SetUserCanView(id, User.Identity?.Name ?? "");
+                return Ok(BaseResponse<string>.OkResponse("Phân quyền thành công"));
+            }
+            catch (BaseException.ErrorException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+        }
+
+        [HttpPost("assignRoleEditToUser")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin", Policy = "InsertPolicy")]
+        public async Task<IActionResult> AssignRoleEditToUser(string id)
+        {
+            try
+            {
+                await _userService.SetUserCanEdit(id, User.Identity?.Name ?? "");
+                return Ok(BaseResponse<string>.OkResponse("Phân quyền thành công"));
+            }
+            catch (BaseException.ErrorException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+        }
+
+        [HttpPost("assignRoleDeleteToUser")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin", Policy = "InsertPolicy")]
+        public async Task<IActionResult> AssignRoleDeleteToUser(string id)
+        {
+            try
+            {
+                await _userService.SetUserCanDelete(id, User.Identity?.Name ?? "");
+                return Ok(BaseResponse<string>.OkResponse("Phân quyền thành công"));
+            }
+            catch (BaseException.ErrorException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+        }
+
+        [HttpPost("assignRoleInsertToUser")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin", Policy = "InsertPolicy")]
+        public async Task<IActionResult> AssignRoleInsertToUser(string id)
+        {
+            try
+            {
+                await _userService.SetUserCanInsert(id, User.Identity?.Name ?? "");
+                return Ok(BaseResponse<string>.OkResponse("Phân quyền thành công"));
+            }
+            catch (BaseException.ErrorException ex)
+            {
+                return BadRequest(BaseResponse<string>.ErrorResponse(ex.ErrorDetail.ErrorMessage?.ToString()));
+            }
+        }
     }
 }
