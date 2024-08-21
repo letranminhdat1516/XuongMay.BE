@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -24,10 +25,8 @@ namespace XuongMay.Services.Service
         }
 
         //insert product
-        public async Task<bool> CreateProduct(ProductModel products, ClaimsPrincipal userClaims)
+        public async Task CreateProduct(ProductModel products, ClaimsPrincipal userClaims)
         {
-            try
-            {
                 Products productsTemp = new Products();
                 productsTemp.ProductName = products.ProductName;
                 productsTemp.ProductDescription = products.ProductDescription;
@@ -36,14 +35,16 @@ namespace XuongMay.Services.Service
                 productsTemp.CreatedBy = userClaims.Identity?.Name;
                 productsTemp.CreatedTime = CoreHelper.SystemTimeNow;
                 productsTemp.LastUpdatedTime = CoreHelper.SystemTimeNow;
+            //Check category is exits
+
+            bool hasCategoy = await _unitOfWork.GetRepository<Category>().Entities
+                                     .AnyAsync(c => c.Id.Equals(productsTemp.CategoryId));
+                if (!hasCategoy)
+                {
+                    throw new BaseException.BadRequestException("Bad Request", "Category does not exist");
+                }
                 await _unitOfWork.GetRepository<Products>().InsertAsync(productsTemp);
                 await _unitOfWork.GetRepository<Products>().SaveAsync();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
         }
 
         //remove product
@@ -54,6 +55,7 @@ namespace XuongMay.Services.Service
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Product.");
             }
+            //check for deleted products
             if (!productsTemp.IsDelete)
             {
                 throw new BaseException.BadRequestException("Bad Request", "Active products cannot be deleted!!!");
@@ -66,19 +68,28 @@ namespace XuongMay.Services.Service
         //remove product by way update status
         public async Task DeleteProductByUpdateStatus(string id, ClaimsPrincipal userClaim)
         {
-            Products products = await _unitOfWork.GetRepository<Products>().GetByIdAsync(id);
-            if (products == null)
+            Products product = await _unitOfWork.GetRepository<Products>().GetByIdAsync(id);
+            if (product == null)
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Product");
             }
-            if (products.IsDelete)
+            //check for deleted products
+
+            if (product.IsDelete)
             {
                 throw new BaseException.BadRequestException("Bad Request", "Product has been deleted ");
             }
-            products.IsDelete = true;
-            products.DeletedBy = userClaim.Identity?.Name;
-            products.DeletedTime = CoreHelper.SystemTimeNow;
-            await _unitOfWork.GetRepository<Products>().UpdateAsync(products);
+            //Check the product included in the orders
+            bool hasProducts = await _unitOfWork.GetRepository<Orders>().Entities
+                         .AnyAsync(o => o.ProductId.Equals(product.Id));
+            if (hasProducts)
+            {
+                throw new BaseException.BadRequestException("Bad Request", "Cannot delete active product !!!");
+            }
+            product.IsDelete = true;
+            product.DeletedBy = userClaim.Identity?.Name;
+            product.DeletedTime = CoreHelper.SystemTimeNow;
+            await _unitOfWork.GetRepository<Products>().UpdateAsync(product);
             await _unitOfWork.GetRepository<Products>().SaveAsync();
         }
 
@@ -113,9 +124,17 @@ namespace XuongMay.Services.Service
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Product.");
             }
+            //Check category is exits
+            bool hasCategoy = await _unitOfWork.GetRepository<Category>().Entities
+                                     .AnyAsync(c => c.Id.Equals(products.CategoryId));
+            if (!hasCategoy)
+            {
+                throw new BaseException.BadRequestException("Bad Request", "Category does not exist");
+            }
             productTemp.ProductName = products.ProductName;
             productTemp.ProductDescription = products.ProductDescription;
             productTemp.ProductPrice = products.ProductPrice;
+            productTemp.CategoryId = products.CategoryId;
             productTemp.LastUpdatedBy = userClaim.Identity?.Name;
             productTemp.LastUpdatedTime = CoreHelper.SystemTimeNow;
             await _unitOfWork.GetRepository<Products>().UpdateAsync(productTemp);

@@ -45,10 +45,8 @@ namespace XuongMay.Services.Service
         }
 
         //insert category
-        public async Task<bool> CreateCategory(CategoryModel category, ClaimsPrincipal userClaims)
+        public async Task CreateCategory(CategoryModel category, ClaimsPrincipal userClaims)
         {
-            try
-            {
                 Category categoryTemp = new Category();
                 categoryTemp.CategoryName = category.CategoryName;
                 categoryTemp.CategoryDescription = category.CategoryDescription;
@@ -57,13 +55,6 @@ namespace XuongMay.Services.Service
                 categoryTemp.CreatedBy = userClaims.Identity?.Name;
                 await _unitOfWork.GetRepository<Category>().InsertAsync(categoryTemp);
                 await _unitOfWork.GetRepository<Category>().SaveAsync();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-
         }
 
         //remove category by id
@@ -74,10 +65,13 @@ namespace XuongMay.Services.Service
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");
             }
+            //check for Category products
+
             if (!categoryTemp.IsDelete)
             {
                 throw new BaseException.BadRequestException("Bad Request", "Cannot delete active categories");
             }
+            //Check the category included in the product
             bool hasProducts = await _unitOfWork.GetRepository<Products>().Entities
                                      .AnyAsync(p => p.CategoryId.Equals(categoryTemp.Id));
             if (hasProducts)
@@ -96,6 +90,7 @@ namespace XuongMay.Services.Service
             {
                 throw new BaseException.ErrorException(404, "Not Found", "Not Found Category");
             }
+            //Check the category included in the product
 
             bool hasProducts = await _unitOfWork.GetRepository<Products>().Entities
                                      .AnyAsync(p => p.CategoryId.Equals(categoryTemp.Id));

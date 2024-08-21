@@ -15,7 +15,7 @@ namespace XuongMay.Contract.Services.Interface
         //get category by id
         Task<Category> GetCategoryById(string id);
         //create category
-        Task<bool> CreateCategory(CategoryModel category, ClaimsPrincipal usersClaims);
+        Task CreateCategory(CategoryModel category, ClaimsPrincipal usersClaims);
         //update category
         Task UpdateCategory(string id, CategoryModel category ,ClaimsPrincipal userClaims);
         //delete category by way update isDelete

@@ -15,7 +15,7 @@ namespace XuongMay.Contract.Services.Interface
         //get product by it
         Task<Products> GetProdutcById(string id);
         //insert product
-        Task<bool> CreateProduct(ProductModel products, ClaimsPrincipal userClaims);
+        Task CreateProduct(ProductModel products, ClaimsPrincipal userClaims);
         //update product
         Task UpdateProduct(string id, ProductModel products, ClaimsPrincipal userClaims);
         //update status working of product
