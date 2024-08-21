@@ -25,6 +25,7 @@ namespace XuongMayBE.API.Controllers
         #region Get all the order
         [HttpGet("all-order")]
         [SwaggerOperation(Summary = "Lấy tất cả order")]
+        [Authorize(Policy = "ViewPolicy")]
         public async Task<IActionResult> GetAllOrder(int index = 1, int pageSize = 10)
         {
             BasePaginatedList<Orders> orders = await _orderProductService.GetAllAsync(index, pageSize);
@@ -35,6 +36,7 @@ namespace XuongMayBE.API.Controllers
         #region Get a specific order base on ID
         [HttpGet("/{id}")]
         [SwaggerOperation(Summary = "Lấy order dựa theo orderId")]
+        [Authorize(Policy = "ViewPolicy")]
         public async Task<Orders?> GetOrderById([FromRoute] string id)
         {
             return await _orderProductService.GetByIdAsync(id);
@@ -44,6 +46,7 @@ namespace XuongMayBE.API.Controllers
         #region Create a new order
         [HttpPost("/orders")]
         [SwaggerOperation(Summary = "Tạo 1 order mới")]
+        [Authorize(Policy = "InsertPolicy")]
         public async Task<IActionResult> CreateOrder([FromBody] OrderModelView orderModelView)
         {
             try
@@ -63,6 +66,7 @@ namespace XuongMayBE.API.Controllers
         #region Change detail of an exting order
         [HttpPut("/update-order/{id}")]
         [SwaggerOperation(Summary = "Chỉnh sửa 1 order dựa theo Id")]
+        [Authorize(Policy = "EditPolicy")]
         public async Task<IActionResult> UpdateOrder(string id, OrderModelView orderModelView)
         {
             var userName = User.FindFirst(ClaimTypes.Name)?.Value;
@@ -81,8 +85,8 @@ namespace XuongMayBE.API.Controllers
 
         #region Delete an order(change the IsDelete to true)
         [HttpDelete("/delete/{id}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [SwaggerOperation(Summary = "Xoá 1 order")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin", Policy = "DeletePolicy")]
         public async Task<IActionResult> DeleteOrder(string id)
         {
             var deleterName = User.FindFirst(ClaimTypes.Name)?.Value;

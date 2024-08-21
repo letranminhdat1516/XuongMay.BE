@@ -121,6 +121,7 @@ namespace XuongMayBE.API
                 {
                     policy.RequireClaim("Permission", "CanDelete");
                 });
+                
                 options.AddPolicy("FullPermissionPolicy", policy =>
                 {
                     policy.RequireClaim("Permission", "CanView");
