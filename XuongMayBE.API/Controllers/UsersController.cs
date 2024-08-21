@@ -28,6 +28,7 @@ namespace XuongMayBE.API.Controllers
         /// Chỉ dành cho Admin và ConveyorManager.
         /// </summary>
         [HttpGet("Users")]
+        [Authorize(Policy = "ViewPolicy")]
         public async Task<IActionResult> GetAllUsers(int pageIndex = 1, int pageSize = 10)
         {
             var users = await _userService.GetAllAsync(pageIndex, pageSize);
@@ -39,6 +40,7 @@ namespace XuongMayBE.API.Controllers
         /// dành cho Admin và ConveyorManager.
         /// </summary>
         [HttpGet("{id}")]
+        [Authorize(Policy = "ViewPolicy")]
         public async Task<IActionResult> GetUserById(string id)
         {
             var user = await _userService.GetByIdAsync(id);
@@ -53,7 +55,7 @@ namespace XuongMayBE.API.Controllers
         /// Cập nhật thông tin người dùng.
         /// </summary>
         [HttpPut("{id}")]
-
+        [Authorize(Policy = "EditPolicy")]
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UserUpdateModel updateModel)
         {
             var result = await _userService.UpdateUserAsync(id, updateModel, User);
@@ -69,7 +71,7 @@ namespace XuongMayBE.API.Controllers
         /// Chỉ dành cho Admin.
         /// </summary>
         [HttpDelete("{id}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [Authorize(Policy = "DeletePolicy")]
         public async Task<IActionResult> DeleteUser(string id)
         {
             var result = await _userService.DeleteUserAsync(id, User);
@@ -85,7 +87,7 @@ namespace XuongMayBE.API.Controllers
         /// Chỉ dành cho Admin.
         /// </summary>
         [HttpGet("roles")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [Authorize(Policy = "ViewPolicy")]
         public async Task<IActionResult> GetRoles()
         {
             var roles = await _userService.GetRolesAsync();
@@ -97,7 +99,7 @@ namespace XuongMayBE.API.Controllers
         /// Chỉ dành cho Admin.
         /// </summary>
         [HttpPost("roles")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [Authorize(Policy = "InsertPolicy")]
         public async Task<IActionResult> CreateRole([FromBody] RoleCreateModelView model)
         {
             if (model == null)
@@ -115,7 +117,7 @@ namespace XuongMayBE.API.Controllers
         /// Chỉ dành cho Admin.
         /// </summary>
         [HttpPut("roles/{roleId}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [Authorize(Policy = "EditPolicy")]
         public async Task<IActionResult> UpdateRole(Guid roleId, [FromBody] RoleUpdateModelView model)
         {
             if (model == null)
@@ -135,7 +137,7 @@ namespace XuongMayBE.API.Controllers
         /// Chỉ dành cho Admin.
         /// </summary>
         [HttpDelete("roles/{roleId}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [Authorize(Policy = "DeletePolicy")]
         public async Task<IActionResult> DeleteRole(Guid roleId)
         {
             await _userService.DeleteRole(roleId, User);
@@ -148,7 +150,7 @@ namespace XuongMayBE.API.Controllers
         /// <param name="model">Thông tin về vai trò và người dùng.</param>
         /// <returns>Trả về kết quả của việc đặt vai trò.</returns>
         [HttpPut("roles/set")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [Authorize(Policy = "EditPolicy")]
         public async Task<IActionResult> SetRole([FromBody] RoleSetModelView model)
         {
             if (model == null || string.IsNullOrWhiteSpace(model.RoleName) || model.UserId == Guid.Empty)
@@ -173,7 +175,7 @@ namespace XuongMayBE.API.Controllers
         /// </summary>
         /// <returns>Trả về kết quả của việc xoá vai trò.</returns>
         [HttpDelete("roles/delete-role-user")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [Authorize(Policy = "DeletePolicy")]
         public async Task<IActionResult> DeleteUserRole(Guid userId)
         {
             try
@@ -188,7 +190,7 @@ namespace XuongMayBE.API.Controllers
         }
 
         [HttpPost("assignRoleViewToUser")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin", Policy = "InsertPolicy")]
+        [Authorize(Policy = "InsertPolicy")]
         public async Task<IActionResult> AssignRoleViewToUser(string id)
         {
             try
@@ -203,7 +205,7 @@ namespace XuongMayBE.API.Controllers
         }
 
         [HttpPost("assignRoleEditToUser")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin", Policy = "InsertPolicy")]
+        [Authorize(Policy = "InsertPolicy")]
         public async Task<IActionResult> AssignRoleEditToUser(string id)
         {
             try
@@ -218,7 +220,7 @@ namespace XuongMayBE.API.Controllers
         }
 
         [HttpPost("assignRoleDeleteToUser")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin", Policy = "InsertPolicy")]
+        [Authorize(Policy = "InsertPolicy")]
         public async Task<IActionResult> AssignRoleDeleteToUser(string id)
         {
             try
@@ -233,7 +235,7 @@ namespace XuongMayBE.API.Controllers
         }
 
         [HttpPost("assignRoleInsertToUser")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin", Policy = "InsertPolicy")]
+        [Authorize(Policy = "InsertPolicy")]
         public async Task<IActionResult> AssignRoleInsertToUser(string id)
         {
             try
