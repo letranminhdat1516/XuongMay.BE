@@ -20,15 +20,18 @@ namespace XuongMayBE.API.Config
         /// <param name="issuer">The issuer of the token.</param>
         /// <param name="audience">The audience of the token.</param>
         /// <returns>The generated JWT token.</returns>
-        public static string GenerateJwtToken(ApplicationUser user, string role, string key, string issuer, string audience)
+        public static string GenerateJwtToken(ApplicationUser user, string role, List<string> permissions, string key, string issuer, string audience)
         {
             // Define the claims for the JWT token
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Role, role)
-            };
+            var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.UserName),
+            new Claim(ClaimTypes.Role, role)
+        };
+
+            // Add permissions as claims
+            claims.AddRange(permissions.Select(permission => new Claim("Permission", permission)));
 
             // Generate the security key from the secret key
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));

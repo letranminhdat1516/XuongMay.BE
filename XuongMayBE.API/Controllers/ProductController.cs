@@ -122,11 +122,11 @@ namespace XuongMayBE.API.Controllers
         //api update status IsWorking of product
         [HttpPut("update-status")]
         //[Authorize(Roles = "Admin,Users")]
-        public async Task<IActionResult> UpdateStatus(string id, bool status)
+        public async Task<IActionResult> UpdateStatus(string id)
         {
             try
             {
-                await _productService.UpdateProductStatus(id, status,User);
+                await _productService.UpdateProductStatus(id,User);
                 return Ok(BaseResponse<string>.OkResponse("Update status of product successfully."));
             }
             catch (BaseException.ErrorException ex) when (ex.StatusCode == 404)
