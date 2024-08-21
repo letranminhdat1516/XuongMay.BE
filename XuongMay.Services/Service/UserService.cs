@@ -93,10 +93,8 @@ namespace XuongMay.Services.Service
         // Retrieves a paginated list of all users
         public async Task<BasePaginatedList<UserResponseModel>> GetAllAsync(int pageIndex, int pageSize)
         {
-            var userRepo = _unitOfWork.GetRepository<ApplicationUser>();
-
             // Truy vấn danh sách người dùng, bao gồm cả những người dùng không có UserInfo
-            var query = userRepo.Entities
+            var query = _userRepo.Entities
                 .Include(u => u.UserInfo)
                 .Where(u => u.UserInfo == null || !u.UserInfo.IsDelete)
                 .OrderBy(u => u.CreatedTime);

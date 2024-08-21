@@ -31,6 +31,14 @@ namespace XuongMay.Services.Service
         #region Get All Order Task
         public Task<BasePaginatedList<OrderTask>> GetAllOrderTask(int index, int pageSize)
         {
+            if (index < 0 || pageSize < 0)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Index, PageSize phải lớn hơn 1");
+            }
+            if (index > pageSize)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Index phải nhỏ hơn PageSize");
+            }
             var orderTask = _orderTaskRepository.Entities.Where(ord => !ord.IsDelete);
             return _orderTaskRepository.GetPagging(orderTask, index, pageSize);
         }
@@ -40,6 +48,14 @@ namespace XuongMay.Services.Service
         #region Get All Order Task By Filter
         public async Task<BasePaginatedList<OrderTask>> GetAllOrderTaskByFiler(string keyword, int index, int pageSize)
         {
+            if (index < 0 || pageSize < 0)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Index, PageSize phải lớn hơn 1");
+            }
+            if (index > pageSize)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Index phải nhỏ hơn PageSize");
+            }
             var orderTasks = _orderTaskRepository
                             .Entities
                             .Where(ord => !ord.IsDelete
@@ -202,10 +218,16 @@ namespace XuongMay.Services.Service
                 throw new BaseException.ErrorException(404, "Not Found", "Không tìm thấy băng chuyền");
             }
 
+            if (orderTask.IsDelete)
+            {
+                throw new BaseException.ErrorException(400, "Bad Request", "Nhiệm vụ này đã bị xóa không thể xóa");
+            }
+
             if (conveyor.IsWorking)
             {
                 throw new BaseException.ErrorException(400, "Bad Request", "Băng chuyền đang hoạt động không thể xóa");
             }
+
 
             orderTask.DeletedBy = deleteBy;
             orderTask.DeletedTime = CoreHelper.SystemTimeNow;

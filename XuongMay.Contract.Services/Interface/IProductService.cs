@@ -19,7 +19,7 @@ namespace XuongMay.Contract.Services.Interface
         //update product
         Task UpdateProduct(string id, ProductModel products, ClaimsPrincipal userClaims);
         //update status working of product
-        Task UpdateProductStatus(string id, bool status, ClaimsPrincipal userClaims);
+        Task UpdateProductStatus(string id, ClaimsPrincipal userClaims);
         //delete product by way update status
         Task DeleteProductByUpdateStatus(string id, ClaimsPrincipal userClaims);
         //delete product by id
