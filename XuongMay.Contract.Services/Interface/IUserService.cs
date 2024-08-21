@@ -56,5 +56,13 @@ namespace XuongMay.Contract.Services.Interface
         /// Cập nhật người dùng theo vai trò.
         /// </summary>
         Task SetRoleAsync(Guid userId, string roleName, ClaimsPrincipal adminUser);
+        /// <summary>
+        /// Lấy tất cả vai trò trong hệ thống.
+        /// </summary
+        Task<List<RoleResponseModel>> GetRolesAsync();
+        /// <summary>
+        /// Xoá vai trò của người dùng.
+        /// </summary
+        Task DeleteUserRole(Guid userId, ClaimsPrincipal adminUser);
     }
 }

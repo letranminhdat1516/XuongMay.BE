@@ -36,7 +36,7 @@ namespace XuongMayBE.API.Controllers
 
         /// <summary>
         /// Xem chi tiết thông tin người dùng.
-        /// Chỉ dành cho Admin và ConveyorManager.
+        /// dành cho Admin và ConveyorManager.
         /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(string id)
@@ -80,6 +80,18 @@ namespace XuongMayBE.API.Controllers
             }
             return Ok(new { message = "Xóa người dùng thành công" });
         }
+        /// <summary>
+        /// Xem tất cả các role.
+        /// Chỉ dành cho Admin.
+        /// </summary>
+        [HttpGet("roles")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        public async Task<IActionResult> GetRoles()
+        {
+            var roles = await _userService.GetRolesAsync();
+            return Ok(roles);
+        }
+
         /// <summary>
         /// Tạo Role.
         /// Chỉ dành cho Admin.
@@ -127,7 +139,7 @@ namespace XuongMayBE.API.Controllers
         public async Task<IActionResult> DeleteRole(Guid roleId)
         {
             await _userService.DeleteRole(roleId, User);
-            return Ok("Xóa vai trò thành công (chuyển trạng thái).");
+            return Ok("Xóa vai trò thành công.");
         }
         /// <summary>
         /// Đặt vai trò cho người dùng.
@@ -135,7 +147,7 @@ namespace XuongMayBE.API.Controllers
         /// </summary>
         /// <param name="model">Thông tin về vai trò và người dùng.</param>
         /// <returns>Trả về kết quả của việc đặt vai trò.</returns>
-        [HttpPost("roles/set")]
+        [HttpPut("roles/set")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<IActionResult> SetRole([FromBody] RoleSetModelView model)
         {
@@ -153,6 +165,25 @@ namespace XuongMayBE.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Lỗi khi đặt vai trò: {ex.Message}");
+            }
+        }
+        /// <summary>
+        /// Cập nhật vai trò cho người dùng thành not avaiable.
+        /// Chỉ dành cho Admin.
+        /// </summary>
+        /// <returns>Trả về kết quả của việc xoá vai trò.</returns>
+        [HttpDelete("roles/delete-role-user")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        public async Task<IActionResult> DeleteUserRole(Guid userId)
+        {
+            try
+            {
+                await _userService.DeleteUserRole(userId, User);
+                return Ok("Xóa vai trò thành công.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Lỗi khi xóa vai trò: {ex.Message}");
             }
         }
 
