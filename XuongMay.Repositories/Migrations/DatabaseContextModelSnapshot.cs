@@ -626,6 +626,7 @@ namespace XuongMay.Repositories.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("UserInfoId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("UserName")
@@ -745,7 +746,9 @@ namespace XuongMay.Repositories.Migrations
                 {
                     b.HasOne("XuongMay.Contract.Repositories.Entity.UserInfo", "UserInfo")
                         .WithMany()
-                        .HasForeignKey("UserInfoId");
+                        .HasForeignKey("UserInfoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("UserInfo");
                 });
